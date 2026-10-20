@@ -30,6 +30,7 @@ import {
 import { ToolWorkspaceView } from './components/ToolWorkspaceView';
 import { InfoAndSeoPages } from './components/InfoAndSeoPages';
 import { applySeoConfigToHead } from './seoConfig';
+import { Analytics } from '@vercel/analytics/react';
 
 interface GlobalLoadingOverlayProps {
   active: boolean;
@@ -1216,6 +1217,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      <Analytics />
     </div>
   );
 }
