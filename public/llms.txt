@@ -1,0 +1,113 @@
+# PDFLove.store — Online PDF & Image Utility Suite
+> Fast, privacy-first browser-based PDF management, conversion, image processing, and document generation tools.
+
+## Canonical Website
+- Homepage: https://pdflove.store/
+- Sitemap: https://pdflove.store/sitemap.xml
+- Privacy Policy: https://pdflove.store/privacy
+- Terms of Service: https://pdflove.store/terms
+- About: https://pdflove.store/about
+- Contact: https://pdflove.store/contact
+
+## Processing Architecture & Privacy
+- Local Browser Processing: Core PDF manipulation (merge, split, rotate, page extraction, watermarks, numbering, metadata, text extraction, page rasterization) and Canvas-based image operations run locally inside the user's browser using WebAssembly/JavaScript (pdf-lib, Mozilla PDF.js, SheetJS, Mammoth, HTML5 Canvas).
+- Files processed via local browser tools are not permanently stored on external servers.
+
+## Complete Tool Directory (90 Utilities)
+### A. PDF Management Tools
+- Merge PDF: https://pdflove.store/tools/merge-pdf
+- Split PDF: https://pdflove.store/tools/split-pdf
+- Compress PDF: https://pdflove.store/tools/compress-pdf
+- Rotate PDF: https://pdflove.store/tools/rotate-pdf
+- Delete PDF Pages: https://pdflove.store/tools/delete-pdf-pages
+- Extract PDF Pages: https://pdflove.store/tools/extract-pdf-pages
+- Organize PDF Pages: https://pdflove.store/tools/organize-pdf-pages
+- Reorder PDF Pages: https://pdflove.store/tools/reorder-pdf-pages
+- Duplicate PDF Pages: https://pdflove.store/tools/duplicate-pdf-pages
+- Add Blank Pages to PDF: https://pdflove.store/tools/add-blank-pages
+- Add Page Numbers to PDF: https://pdflove.store/tools/add-page-numbers
+- Add Watermark to PDF: https://pdflove.store/tools/add-watermark-pdf
+- Add Text to PDF: https://pdflove.store/tools/add-text-pdf
+- Add Image to PDF: https://pdflove.store/tools/add-image-pdf
+- Crop PDF Pages: https://pdflove.store/tools/crop-pdf-pages
+- Flatten PDF: https://pdflove.store/tools/flatten-pdf
+- Repair PDF: https://pdflove.store/tools/repair-pdf
+- Unlock PDF: https://pdflove.store/tools/unlock-pdf
+- Protect PDF with Password: https://pdflove.store/tools/protect-pdf
+- Remove PDF Password: https://pdflove.store/tools/remove-pdf-password
+- Compare Two PDFs: https://pdflove.store/tools/compare-pdfs
+- View PDF Metadata: https://pdflove.store/tools/view-pdf-metadata
+- Edit Supported PDF Metadata: https://pdflove.store/tools/edit-pdf-metadata
+- Convert PDF Pages to Images: https://pdflove.store/tools/pdf-pages-to-images
+- Extract Images from PDF: https://pdflove.store/tools/extract-images-pdf
+
+### B. PDF Conversion Tools
+- JPG to PDF: https://pdflove.store/tools/jpg-to-pdf
+- PNG to PDF: https://pdflove.store/tools/png-to-pdf
+- WebP to PDF: https://pdflove.store/tools/webp-to-pdf
+- HEIC to PDF: https://pdflove.store/tools/heic-to-pdf
+- BMP to PDF: https://pdflove.store/tools/bmp-to-pdf
+- TIFF to PDF: https://pdflove.store/tools/tiff-to-pdf
+- HTML to PDF: https://pdflove.store/tools/html-to-pdf
+- TXT to PDF: https://pdflove.store/tools/txt-to-pdf
+- Markdown to PDF: https://pdflove.store/tools/markdown-to-pdf
+- CSV to PDF: https://pdflove.store/tools/csv-to-pdf
+- JSON to PDF: https://pdflove.store/tools/json-to-pdf
+- PDF to JPG: https://pdflove.store/tools/pdf-to-jpg
+- PDF to PNG: https://pdflove.store/tools/pdf-to-png
+- PDF to WebP: https://pdflove.store/tools/pdf-to-webp
+- PDF to TXT: https://pdflove.store/tools/pdf-to-txt
+- PDF to CSV: https://pdflove.store/tools/pdf-to-csv
+- PDF to HTML: https://pdflove.store/tools/pdf-to-html
+- PDF to JSON: https://pdflove.store/tools/pdf-to-json
+- PDF to Word (DOCX): https://pdflove.store/tools/pdf-to-word
+- Word (DOCX) to PDF: https://pdflove.store/tools/word-to-pdf
+- PDF to Excel (XLSX): https://pdflove.store/tools/pdf-to-excel
+- Excel (XLSX) to PDF: https://pdflove.store/tools/excel-to-pdf
+- PDF to PowerPoint (PPTX): https://pdflove.store/tools/pdf-to-powerpoint
+- PowerPoint (PPTX) to PDF: https://pdflove.store/tools/powerpoint-to-pdf
+- PDF to EPUB: https://pdflove.store/tools/pdf-to-epub
+
+### C. Image Tools
+- Compress Image: https://pdflove.store/tools/compress-image
+- Resize Image: https://pdflove.store/tools/resize-image
+- Crop Image: https://pdflove.store/tools/crop-image
+- Rotate Image: https://pdflove.store/tools/rotate-image
+- Flip Image: https://pdflove.store/tools/flip-image
+- Convert JPG to PNG: https://pdflove.store/tools/jpg-to-png
+- Convert PNG to JPG: https://pdflove.store/tools/png-to-jpg
+- Convert JPG to WebP: https://pdflove.store/tools/jpg-to-webp
+- Convert PNG to WebP: https://pdflove.store/tools/png-to-webp
+- Convert WebP to JPG: https://pdflove.store/tools/webp-to-jpg
+- Convert WebP to PNG: https://pdflove.store/tools/webp-to-png
+- Convert Image to PDF: https://pdflove.store/tools/image-to-pdf
+- Convert Image to Grayscale: https://pdflove.store/tools/image-to-grayscale
+- Adjust Image Brightness: https://pdflove.store/tools/adjust-image-brightness
+- Adjust Image Contrast: https://pdflove.store/tools/adjust-image-contrast
+- Adjust Image Quality: https://pdflove.store/tools/adjust-image-quality
+- Add Text to Image: https://pdflove.store/tools/add-text-image
+- Add Watermark to Image: https://pdflove.store/tools/add-watermark-image
+- Make Image Background Transparent: https://pdflove.store/tools/transparent-background
+- Remove Image Background: https://pdflove.store/tools/remove-image-background
+- Extract Image Dimensions: https://pdflove.store/tools/extract-image-dimensions
+- View Image Metadata: https://pdflove.store/tools/view-image-metadata
+- Generate Image from Text: https://pdflove.store/tools/generate-image-from-text
+
+### D. Additional Document Utilities
+- Count PDF Pages: https://pdflove.store/tools/count-pdf-pages
+- Count Words in Extracted PDF Text: https://pdflove.store/tools/count-pdf-words
+- Extract Text from PDF: https://pdflove.store/tools/extract-pdf-text
+- Search Text in PDF: https://pdflove.store/tools/search-text-pdf
+- Find and Highlight PDF Text: https://pdflove.store/tools/highlight-pdf-text
+- Create a Blank PDF: https://pdflove.store/tools/create-blank-pdf
+- Create a PDF from Text: https://pdflove.store/tools/create-pdf-from-text
+- Create a PDF Invoice: https://pdflove.store/tools/create-pdf-invoice
+- Create a Simple PDF Resume: https://pdflove.store/tools/create-pdf-resume
+- Create a PDF Checklist: https://pdflove.store/tools/create-pdf-checklist
+- Create a PDF Certificate: https://pdflove.store/tools/create-pdf-certificate
+- Create a PDF Table from CSV Data: https://pdflove.store/tools/create-pdf-table-csv
+- Generate a QR Code: https://pdflove.store/tools/generate-qr-code
+- Generate a Barcode: https://pdflove.store/tools/generate-barcode
+- Calculate PDF File Size Before and After Compression: https://pdflove.store/tools/calculate-pdf-compression
+- Extract PDF Attachments: https://pdflove.store/tools/extract-pdf-attachments
+- Create a PDF Contact Sheet from Uploaded Images: https://pdflove.store/tools/create-pdf-contact-sheet

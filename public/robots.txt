@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /blob:
+
+Sitemap: https://pdflove.store/sitemap.xml

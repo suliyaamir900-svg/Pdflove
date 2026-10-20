@@ -1,0 +1,6 @@
+{
+  "name": "PDFLove.store – All-in-One Online PDF & Image Tools",
+  "description": "Merge, split, compress, convert, and manage your PDF documents and images online in your browser with 90 fast, privacy-first utilities.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

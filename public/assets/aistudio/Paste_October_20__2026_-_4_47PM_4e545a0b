@@ -1,0 +1,702 @@
+MASTER PROMPT — PDFLove.store
+
+Complete Professional PDF & Image Tools Website | SEO + GEO SEO + AI Search Optimization
+
+1. PROJECT OVERVIEW
+
+Build a complete, professional, production-oriented online PDF and image utility website named PDFLove.store.
+
+Website URL: https://pdflove.store
+
+Website category: Online PDF tools, image tools, document conversion, document compression, editing and productivity utilities.
+
+Primary goal: Create a fast, reliable, secure and mobile-first website where users can search for any PDF or image tool, open its dedicated page, upload their files, perform the operation and download the actual processed result.
+
+The website must have the quality of a leading online PDF utility platform. Take inspiration from the usability of established document tools websites, but create an original brand identity, original UI, original content and independent implementation.
+
+2. STRICT DEVELOPMENT REQUIREMENTS
+
+Use the following technology and architecture:
+
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- Single main file: "index.html"
+- No React, Vue, Angular, Bootstrap, Tailwind CSS or jQuery.
+- No mandatory backend or database for the basic browser-based tools.
+- No admin panel.
+- No fake tools, fake progress, fake download buttons or non-functional UI.
+- No hard-coded API keys, secrets or credentials.
+- Use local browser processing wherever technically possible.
+- Use reputable JavaScript libraries only when required for genuine document processing.
+- Ensure mobile, tablet, laptop and desktop compatibility.
+- Use readable, modular, well-commented JavaScript inside the HTML file.
+
+If external libraries are required, use stable, reputable libraries with suitable licenses. Pin dependency versions where practical and use Subresource Integrity when supported. Do not silently substitute a non-working feature when a library fails to load.
+
+Single-file requirement: Deliver one complete, runnable "index.html" containing all application HTML, CSS and JavaScript. Do not split the application into multiple source files unless absolutely necessary for a separately deployed service.
+
+However, production SEO resources such as "robots.txt", "sitemap.xml", security headers, redirects and server configuration may require separate hosting configuration or generated files. Provide these as additional deployment assets or configuration instructions when needed. Never pretend that a static HTML file can independently configure server settings.
+
+3. BRAND IDENTITY AND DESIGN
+
+Create a premium visual identity for PDFLove.store.
+
+Design direction:
+
+- Modern, clean, trustworthy SaaS interface.
+- Original logo with a simple document/PDF-inspired symbol.
+- White and soft-neutral backgrounds with a restrained red or coral accent.
+- Professional typography and excellent spacing.
+- Rounded tool cards, subtle shadows and polished hover effects.
+- Light mode and dark mode.
+- Smooth but lightweight animations.
+- Clear visual hierarchy and accessible contrast.
+- Optional glassmorphism in selected elements without compromising readability.
+- No excessive gradients, clutter, fake 3D effects or generic AI-generated-looking layouts.
+
+Header:
+
+- PDFLove.store logo.
+- Home.
+- All Tools.
+- PDF Tools.
+- Image Tools.
+- How It Works.
+- FAQ.
+- Language selector.
+- Theme toggle.
+- Search icon or search field.
+
+On mobile, use a compact responsive header with an accessible menu.
+
+Homepage hero:
+
+Main heading: “All Your PDF & Image Tools in One Place”
+
+Supporting text: “Merge, split, compress, convert and manage your documents with simple online tools.”
+
+Primary action: “Explore All Tools”
+
+Secondary action: “Choose a File”
+
+Include a functional tool search box with helpful suggestions.
+
+Do not make unsupported claims such as “100% secure,” “military-grade security,” “unlimited file size” or “all files are automatically deleted” unless the actual implementation can substantiate them.
+
+4. COMPLETE TOOL CATALOG
+
+Build a searchable directory of the following tools. Each tool must have its own description, instructions, input area, settings, processing state, error handling and output/download area.
+
+Implement each operation genuinely. If a particular conversion cannot be reliably supported in a browser-only application, explain its limitation and identify the appropriate backend requirement instead of simulating success.
+
+A. PDF Management Tools
+
+1. Merge PDF
+2. Split PDF
+3. Compress PDF
+4. Rotate PDF
+5. Delete PDF Pages
+6. Extract PDF Pages
+7. Organize PDF Pages
+8. Reorder PDF Pages
+9. Duplicate PDF Pages
+10. Add Blank Pages to PDF
+11. Add Page Numbers to PDF
+12. Add Watermark to PDF
+13. Add Text to PDF
+14. Add Image to PDF
+15. Crop PDF Pages
+16. Flatten PDF
+17. Repair PDF — only where genuine repair is feasible
+18. Unlock PDF — only for files the user is authorized to modify
+19. Protect PDF with Password
+20. Remove PDF Password — only when the user supplies the necessary authorization or password
+21. Compare Two PDFs
+22. View PDF Metadata
+23. Edit Supported PDF Metadata
+24. Convert PDF Pages to Images
+25. Extract Images from PDF
+
+B. PDF Conversion Tools
+
+26. JPG to PDF
+27. PNG to PDF
+28. WebP to PDF
+29. HEIC to PDF — where supported by the chosen browser libraries
+30. BMP to PDF
+31. TIFF to PDF — where supported
+32. HTML to PDF — with clearly documented rendering limitations
+33. TXT to PDF
+34. Markdown to PDF
+35. CSV to PDF
+36. JSON to PDF
+37. PDF to JPG
+38. PDF to PNG
+39. PDF to WebP
+40. PDF to TXT
+41. PDF to CSV — for suitable tabular documents
+42. PDF to HTML — preserve supported content where possible
+43. PDF to JSON — only for explicitly supported extraction structures
+44. PDF to Word (DOCX)
+45. Word (DOCX) to PDF
+46. PDF to Excel (XLSX)
+47. Excel (XLSX) to PDF
+48. PDF to PowerPoint (PPTX)
+49. PowerPoint (PPTX) to PDF
+50. PDF to EPUB — where reliable conversion is possible
+
+For Word, Excel and PowerPoint conversions, use a real compatible conversion engine or a documented browser library. Do not merely rename file extensions. If fidelity or format support is limited, communicate that before processing.
+
+C. Image Tools
+
+51. Compress Image
+52. Resize Image
+53. Crop Image
+54. Rotate Image
+55. Flip Image
+56. Convert JPG to PNG
+57. Convert PNG to JPG
+58. Convert JPG to WebP
+59. Convert PNG to WebP
+60. Convert WebP to JPG
+61. Convert WebP to PNG
+62. Convert Image to PDF
+63. Convert Image to Grayscale
+64. Adjust Image Brightness
+65. Adjust Image Contrast
+66. Adjust Image Quality
+67. Add Text to Image
+68. Add Watermark to Image
+69. Make Image Background Transparent — only if a real supported segmentation engine is integrated
+70. Remove Image Background — clearly identify any external service or model dependency
+71. Extract Image Dimensions
+72. View Image Metadata
+73. Generate Image from Text — only if a genuine image-generation service is integrated and configured
+
+Image-processing tools should use the Canvas API or other appropriate browser capabilities when possible. Preserve transparency, aspect ratio and image quality as appropriate.
+
+D. Additional Document Utilities
+
+74. Count PDF Pages
+75. Count Words in Extracted PDF Text
+76. Extract Text from PDF
+77. Search Text in PDF
+78. Find and Highlight PDF Text — only when technically supported
+79. Create a Blank PDF
+80. Create a PDF from Text
+81. Create a PDF Invoice from User-Provided Details
+82. Create a Simple PDF Resume from User-Provided Details
+83. Create a PDF Checklist
+84. Create a PDF Certificate from User-Provided Details
+85. Create a PDF Table from CSV Data
+86. Generate a QR Code for User-Provided Text or URL
+87. Generate a Barcode for User-Provided Data
+88. Calculate PDF File Size Before and After Compression
+89. Extract PDF Attachments — where supported
+90. Create a PDF Contact Sheet from Uploaded Images
+
+5. TOOL FUNCTIONALITY REQUIREMENTS
+
+Every tool must follow a consistent working process:
+
+1. User opens the dedicated tool page.
+2. User selects or drags and drops a file.
+3. Validate the file type, file size, number of files and relevant settings.
+4. Show the selected files and their sizes.
+5. Allow the user to change settings.
+6. Start the actual processing operation.
+7. Display genuine progress where measurable.
+8. Show a useful error message if processing fails.
+9. Provide a working download of the generated output.
+10. Allow the user to process another file or return to the tools directory.
+
+Use an accessible drag-and-drop upload area, file picker, clear buttons, progress indicators, success messages and error messages.
+
+Support multiple file selection only for tools that need it.
+
+Show the actual input size and output size when available. Never show fabricated compression percentages or progress.
+
+File-handling rules:
+
+- Validate file extensions and MIME types, while recognizing that neither alone proves file safety.
+- Apply configurable file-size limits based on real browser and library capabilities.
+- Handle corrupt, encrypted, unsupported and oversized files gracefully.
+- Release temporary object URLs and browser resources when no longer required.
+- Do not upload files to external services without clearly explaining the processing method and obtaining appropriate consent.
+- Do not store document contents in localStorage.
+- Do not log file contents, passwords or sensitive document data.
+- Do not claim that browser memory is unlimited.
+- Never claim a file was processed successfully unless a valid output was actually produced.
+
+6. DEDICATED TOOL PAGES AND SEO-FRIENDLY URLS
+
+Every tool needs a distinct, shareable, crawlable URL.
+
+Example URL structure:
+
+- "https://pdflove.store/"
+- "https://pdflove.store/tools/merge-pdf"
+- "https://pdflove.store/tools/split-pdf"
+- "https://pdflove.store/tools/compress-pdf"
+- "https://pdflove.store/tools/jpg-to-pdf"
+- "https://pdflove.store/tools/pdf-to-jpg"
+- "https://pdflove.store/tools/word-to-pdf"
+- "https://pdflove.store/tools/pdf-to-word"
+- "https://pdflove.store/tools/resize-image"
+- "https://pdflove.store/tools/compress-image"
+
+Use the same clean pattern for all remaining tools.
+
+Each tool page must contain:
+
+- A unique title tag.
+- A unique meta description.
+- A self-referencing canonical URL.
+- One clear H1.
+- Original introductory content.
+- The actual working tool interface.
+- How-to instructions.
+- Relevant use cases.
+- Supported file types.
+- Limitations and privacy information.
+- Related tools with internal links.
+- Relevant FAQs.
+- Breadcrumb navigation.
+- BreadcrumbList structured data where appropriate.
+
+Do not create hundreds of thin, identical SEO pages. Every indexed page must have real utility, accurate descriptions and meaningful unique content.
+
+Routing requirement: In a single-file implementation, use a lightweight JavaScript router or a suitable static-hosting rewrite configuration. Verify that direct visits, browser refreshes, canonical URLs and internal navigation work correctly. If the chosen hosting platform cannot serve these paths properly, provide the correct alternative deployment configuration.
+
+Do not treat URL fragments such as "/#merge-pdf" as equivalent to independent crawlable pages without explaining the SEO limitations.
+
+7. HOMEPAGE STRUCTURE
+
+Build the homepage with these sections:
+
+1. Header and navigation.
+2. Hero section with a functional search field.
+3. Popular tools.
+4. PDF tools directory.
+5. Image tools directory.
+6. Conversion tools directory.
+7. All tools with category filters.
+8. Why use PDFLove.store?
+9. How it works.
+10. Privacy and file-processing explanation.
+11. Frequently asked questions.
+12. Related tool links.
+13. Footer with important legal and informational pages.
+
+Create attractive tool cards with:
+
+- Original icon.
+- Tool name.
+- One-line description.
+- Clickable navigation.
+- Keyboard accessibility.
+- Responsive layout.
+
+Add search by tool name, aliases and category. Add filters such as PDF, Image, Convert, Organize and Security.
+
+Search results must open the actual relevant tool, not a placeholder page.
+
+8. SEO OPTIMIZATION
+
+Implement technical and on-page SEO throughout the website.
+
+Essential SEO elements
+
+- Unique title and meta description for each tool.
+- Canonical URLs.
+- Semantic HTML.
+- Proper H1, H2 and H3 hierarchy.
+- Crawlable internal links.
+- Descriptive image alt text.
+- Open Graph metadata.
+- Social sharing metadata.
+- Favicon and web app icons.
+- Responsive mobile design.
+- Compressed assets.
+- Lazy loading for suitable below-the-fold images.
+- Minimal unnecessary JavaScript.
+- Fast initial page rendering.
+- No intrusive interstitials.
+- Accessible forms and buttons.
+- Helpful 404 page.
+- Accurate robots directives.
+- No accidental "noindex" on pages intended for indexing.
+- No duplicate canonical URLs.
+- No keyword stuffing or hidden text.
+
+Avoid adding arbitrary meta keywords tags as an SEO strategy.
+
+SEO content requirements
+
+Write useful and original content for each important tool page. Include the target query naturally, such as:
+
+- Merge PDF online.
+- Compress PDF online.
+- Convert JPG to PDF.
+- Convert PDF to Word.
+- Split PDF pages.
+- Compress images online.
+- Resize images online.
+
+Do not repeat the same keyword unnaturally or guarantee rankings.
+
+Core Web Vitals
+
+Optimize for:
+
+- Largest Contentful Paint (LCP).
+- Interaction to Next Paint (INP).
+- Cumulative Layout Shift (CLS).
+
+Use real testing tools to measure results. Do not invent PageSpeed scores.
+
+Structured data
+
+Implement valid JSON-LD where relevant:
+
+- "Organization" or "WebSite", as appropriate.
+- "WebApplication" where accurate.
+- "BreadcrumbList" on tool pages.
+- "FAQPage" only when visible FAQ content meets current search-engine requirements and the markup is appropriate.
+
+Use valid URLs, consistent brand information and accurate descriptions. Do not invent reviews, star ratings, testimonials, awards, business addresses or social profiles.
+
+Validate structured data before deployment.
+
+9. GEO SEO — GENERATIVE ENGINE OPTIMIZATION
+
+Optimize the website to make its content easy for search engines and AI-powered discovery systems to understand.
+
+Here, GEO means Generative Engine Optimization, not geographic keyword targeting.
+
+Implement:
+
+- Clear, factual descriptions of every tool.
+- Concise definitions near the beginning of each tool page.
+- Step-by-step instructions.
+- Explicit supported formats and limitations.
+- Natural-language questions and answers.
+- Consistent product and brand naming.
+- Descriptive internal linking.
+- Accurate structured data.
+- An accessible About page.
+- A Contact page with genuine contact details supplied by the owner.
+- A Privacy Policy and Terms of Service.
+- A clear explanation of browser-based versus server-based processing.
+- An XML sitemap containing eligible canonical URLs.
+- An accurate robots.txt.
+- Optional "llms.txt" as a supplementary discovery document, without claiming it is a Google ranking requirement.
+
+Write content that can be understood when quoted independently of the rest of the page. Answer common user questions directly without filler.
+
+Do not promise inclusion in ChatGPT, Gemini, Perplexity or any search engine. Do not publish misleading AI-crawler directives or claim GEO guarantees traffic.
+
+10. GOOGLE SEO, SEARCH CONSOLE AND INDEXING
+
+Prepare the site for Google Search Console and other relevant webmaster tools.
+
+Include instructions to:
+
+1. Verify ownership of "pdflove.store".
+2. Submit the correct sitemap URL.
+3. Inspect important tool URLs.
+4. Check indexing and canonicalization.
+5. Monitor crawl errors.
+6. Test structured data.
+7. Check mobile usability and Core Web Vitals.
+8. Review search queries and landing-page performance.
+
+Do not claim that Google has indexed any page until that has been verified.
+
+Do not invent Search Console verification codes or DNS records. Explain where the owner obtains their actual verification token.
+
+11. SITEMAP.XML
+
+Generate a valid XML sitemap for the website's canonical, indexable URLs.
+
+Example structure:
+
+"https://pdflove.store/sitemap.xml"
+
+Include the homepage, important informational pages and eligible individual tool pages.
+
+Example XML template:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://pdflove.store/</loc>
+  </url>
+  <url>
+    <loc>https://pdflove.store/tools/merge-pdf</loc>
+  </url>
+  <url>
+    <loc>https://pdflove.store/tools/compress-pdf</loc>
+  </url>
+  <url>
+    <loc>https://pdflove.store/tools/jpg-to-pdf</loc>
+  </url>
+</urlset>
+
+The above is a template, not a complete sitemap.
+
+Generate entries for all actual eligible tool URLs and the appropriate informational pages.
+
+Requirements:
+
+- Use absolute HTTPS URLs.
+- Include only real, canonical URLs that should be indexed.
+- Do not include login, temporary processing, blob, query-generated duplicate or error URLs.
+- Use valid XML escaping.
+- Use "lastmod" only when it reflects a genuine modification date.
+- Do not add arbitrary "priority" or "changefreq" values as if they improve Google rankings.
+- Split into sitemap indexes if the sitemap grows beyond protocol limits.
+- Ensure the sitemap returns valid XML with HTTP status 200.
+- Reference the sitemap in "robots.txt".
+- Provide a generated sitemap file or a hosting-compatible sitemap-generation solution.
+
+Important: A sitemap cannot be made publicly available merely by placing its XML inside an HTML script element. If hosting only allows the main HTML file, explain the platform limitation and provide a real supported alternative.
+
+12. ROBOTS.TXT
+
+Prepare a real plain-text "robots.txt" at the domain root.
+
+Example template:
+
+User-agent: *
+Allow: /
+Sitemap: https://pdflove.store/sitemap.xml
+
+Modify this only if the final deployment needs specific crawl restrictions.
+
+Do not accidentally block CSS, JavaScript or important tool pages. Do not use robots.txt as a privacy or file-security mechanism.
+
+If the hosting platform cannot serve a root-level text file directly, provide the correct hosting configuration or platform-specific alternative.
+
+13. GEOLOCAL SEO — ONLY WHERE RELEVANT
+
+The website serves an international audience, so do not artificially restrict the site to Gujarat or India.
+
+Where appropriate:
+
+- Mention that the service is available online internationally.
+- Provide genuine owner/business details if supplied.
+- Use the correct language and currency for any localized content.
+- Add region-specific landing pages only if they provide meaningful localized value.
+- Use "hreflang" only for actual, separately addressable language or regional variants.
+- Keep NAP information consistent if a real public business address and phone number are provided.
+
+Do not invent a physical office, Google Business Profile, map listing, phone number or customer location.
+
+14. MULTILINGUAL SUPPORT
+
+Add a language selector with a scalable translation system.
+
+Initial languages:
+
+- English.
+- Hindi.
+- Gujarati.
+- Spanish.
+- French.
+- Arabic.
+- Portuguese.
+- German.
+- Indonesian.
+- Turkish.
+
+Requirements:
+
+- Translate navigation, buttons, tool descriptions, error messages, instructions and essential legal text.
+- Use correct Gujarati and Hindi scripts.
+- Support right-to-left layout for Arabic.
+- Avoid mixing untranslated labels unnecessarily.
+- Persist the user's language preference locally without storing document contents.
+- Fall back to English when a translation is unavailable.
+- Use properly localized number, date and file-size formatting where appropriate.
+
+Do not falsely claim that the entire website is translated if only the navigation has changed.
+
+For SEO, language-specific indexable pages require real language-specific URLs, rendered translated content, suitable canonical rules and reciprocal "hreflang" annotations. A JavaScript-only language toggle is useful for users but does not automatically create independent indexable translations.
+
+15. PRIVACY, SECURITY AND LEGAL PAGES
+
+Create the following pages or sections:
+
+- Privacy Policy.
+- Terms of Service.
+- Cookie Policy, if applicable.
+- Contact.
+- About.
+- Disclaimer.
+- 404 Not Found.
+
+Explain clearly:
+
+- Which tools process files in the browser.
+- Which tools require a third-party service or server.
+- Whether files leave the device.
+- What happens to temporary files.
+- Any external dependencies.
+- Applicable file-size limitations.
+- Any analytics or cookies actually used.
+
+Do not claim automatic server-side deletion unless the relevant backend implements and verifies it.
+
+Do not store uploaded document contents, extracted sensitive text or PDF passwords in analytics.
+
+Use appropriate safeguards for untrusted files and document parsing. Client-side processing reduces upload exposure but does not make every file or dependency risk-free.
+
+16. ACCESSIBILITY
+
+Follow practical WCAG accessibility principles.
+
+Include:
+
+- Keyboard-accessible navigation.
+- Visible focus indicators.
+- Correct labels for file inputs.
+- Accessible error announcements.
+- Sufficient color contrast.
+- Screen-reader-friendly progress updates.
+- Semantic buttons and links.
+- Reduced-motion support.
+- Usable controls on small screens.
+
+Do not rely on color alone to indicate success or failure.
+
+17. PERFORMANCE AND LOADING
+
+Keep the homepage lightweight.
+
+- Load heavy document libraries only when the relevant tool is opened.
+- Avoid loading every converter library on initial page load.
+- Use dynamic imports where compatible with the architecture.
+- Use efficient file processing and memory cleanup.
+- Prevent unnecessary layout shifts.
+- Use local fonts or efficient font loading.
+- Avoid excessive third-party scripts.
+- Display a useful message if a required library fails to load.
+- Never show a fake loading animation to hide an operation that did not start.
+
+When a tool is computationally intensive, explain that performance depends on device memory, browser capabilities and document size.
+
+18. ANALYTICS AND ADS — OPTIONAL
+
+Keep the core website functional without requiring analytics or advertising.
+
+If analytics are enabled:
+
+- Use a legitimate provider and a properly configured property.
+- Avoid collecting document content, filenames containing personal data or passwords.
+- Respect applicable consent requirements.
+- Do not insert fake analytics IDs.
+
+If advertising is added:
+
+- Reserve responsive ad areas without disrupting tool usability.
+- Clearly distinguish advertisements from download buttons.
+- Do not make ads resemble system warnings or tool actions.
+- Do not add forced redirects, deceptive clicks or fake download links.
+
+19. IMPORTANT HOSTING AND ARCHITECTURE LIMITATIONS
+
+Before implementing, determine which platform will host the final website.
+
+The main application should remain a single "index.html", but certain capabilities may require additional resources.
+
+Examples:
+
+- Root-level "robots.txt" and "sitemap.xml" need actual accessible URLs.
+- Clean individual tool routes may require static-hosting rewrites or a router.
+- High-fidelity DOCX, XLSX and PPTX conversion may require a server-side conversion engine.
+- OCR may require an appropriate OCR library or service.
+- Background removal may require a real segmentation model or external API.
+- Large-file processing may exceed browser memory.
+- Some PDF password and repair operations are not reliably possible for every file.
+
+If the current hosting platform is Blogger or another platform with restricted file and routing control, explain exactly which requirements it supports natively, which need an external hosting solution, and which need a compatible workaround.
+
+Do not silently abandon the single-file requirement or pretend that unsupported hosting features work.
+
+20. TESTING CHECKLIST
+
+Before delivering the project, test every implemented tool.
+
+Verify:
+
+- Upload works.
+- File validation works.
+- Processing produces a valid output.
+- Download produces the correct file.
+- Multiple-file tools behave correctly.
+- Settings affect the actual result.
+- Unsupported and corrupt files show useful errors.
+- Mobile layout works.
+- Search returns the correct tool.
+- Tool URLs work on direct visit and refresh.
+- Browser Back and Forward work.
+- Theme toggle works.
+- Language selector works.
+- Sitemap XML is valid and reachable.
+- robots.txt is valid and reachable.
+- Canonical URLs are correct.
+- Metadata is unique.
+- Structured data is valid.
+- No important console errors remain.
+- No dead buttons or fake progress remain.
+- Temporary resources are released.
+
+If any feature cannot be tested, explicitly mark it as unverified instead of reporting it as passed.
+
+21. FINAL DELIVERABLES
+
+Deliver the following:
+
+1. Complete runnable "index.html".
+2. A genuine working homepage and searchable tool directory.
+3. All genuinely implemented tools from the catalog, with unsupported features clearly identified.
+4. Dedicated tool URLs and routing.
+5. "sitemap.xml" containing actual eligible pages.
+6. "robots.txt".
+7. "404" handling.
+8. Original SEO content for important tool pages.
+9. Valid structured data where appropriate.
+10. Multilingual interface and translation system.
+11. Privacy, Terms, About, Contact and other required pages.
+12. A deployment guide specific to the chosen hosting platform.
+13. A list of external dependencies and their licenses.
+14. A testing report that distinguishes passed, failed and unverified features.
+15. Clear instructions for connecting "pdflove.store", enabling HTTPS, configuring redirects and submitting the sitemap.
+
+If the environment cannot create downloadable files, output the complete source in clearly labeled sections and explain how to assemble it without omitting code.
+
+22. FINAL EXECUTION INSTRUCTIONS
+
+Start by planning the architecture, tool implementation matrix, routing strategy, SEO strategy and hosting compatibility.
+
+Then build the application in a logical order:
+
+1. Core UI and responsive layout.
+2. Search and tool directory.
+3. Functional file upload and processing engine.
+4. Tool-specific settings and downloads.
+5. Routing and dedicated tool content.
+6. Multilingual support.
+7. SEO, structured data, sitemap and robots configuration.
+8. Privacy and legal pages.
+9. Testing and deployment instructions.
+
+Do not stop after creating a visual mockup.
+
+Do not replace real functionality with sample output.
+
+Do not claim every tool is working until each implemented operation has been tested.
+
+Final objective: Deliver the strongest practical version of PDFLove.store that respects the single-file application requirement, offers real document and image utilities, provides dedicated search-friendly tool pages, and includes a correct, deployable SEO and GEO optimization setup. Prioritize correctness, usability, privacy, performance and maintainability over the number of advertised tools.
