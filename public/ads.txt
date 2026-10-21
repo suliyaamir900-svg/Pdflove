@@ -1,0 +1,11 @@
+# Official IAB Tech Lab ads.txt for www.pdflove.store (PDFLove — Copyright by Nexify)
+# Authorizes Google AdSense, Google Ad Manager, DoubleClick Video Ads & OpenRTB Video/Display Inventory
+# Replace pub-0000000000000000 with your active 16-digit Google AdSense Publisher ID once issued in your AdSense console.
+
+DOMAIN=pdflove.store
+OWNERDOMAIN=pdflove.store
+CONTACT=support@pdflove.store
+
+# Google AdSense & Google Video / Display Ad Exchange (Direct & Reseller Authorization)
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+google.com, pub-0000000000000000, RESELLER, f08c47fec0942fa0

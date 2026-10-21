@@ -1,0 +1,21 @@
+{
+  "name": "PDFLove — 160+ Free Online PDF, Image, QR, Invoice & Calculator Tools (By Nexify)",
+  "short_name": "PDFLove",
+  "description": "PDFLove (Copyright by Nexify): 100% Free Online PDF Tools, GST Invoice Maker, Multi-Signature Certificate Studio, Image Editor, QR Generator, and Calculators.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#e11d48",
+  "orientation": "any",
+  "categories": ["productivity", "utilities", "business", "education"],
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/og-cover.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

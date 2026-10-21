@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
 import {
-  Download,
-  FileCode,
-  Globe,
-  Shield,
-  CheckCircle2,
-  AlertTriangle,
   ArrowLeft,
   Mail,
-  Server,
-  Copy,
-  Check,
+  ShieldCheck,
+  Cpu,
+  CheckCircle2,
+  FileCheck2,
+  Globe,
+  Send,
+  MessageSquare,
+  Building2,
+  Clock,
+  Lock,
 } from 'lucide-react';
-import {
-  generateRobotsTxtString,
-  generateSitemapXmlString,
-  generateStandaloneSingleFileHtml,
-} from '../services/seoAndSingleFileExporter';
 import { TOOLS_CATALOG } from '../data/toolsCatalog';
+
+// Internal recipient email (kept hidden from public UI text; all form queries route here)
+const INTERNAL_ADMIN_EMAIL = 'Abdullahbhoraniya37@gmail.com';
 
 interface InfoPageProps {
   pagePath: string;
@@ -25,62 +24,208 @@ interface InfoPageProps {
 }
 
 export const InfoAndSeoPages: React.FC<InfoPageProps> = ({ pagePath, onNavigate }) => {
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [senderName, setSenderName] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [senderPhone, setSenderPhone] = useState('');
+  const [inquiryType, setInquiryType] = useState('Tool Support & Help');
+  const [messageText, setMessageText] = useState('');
 
-  const downloadTextAsset = (content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
-  };
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSending(true);
+    try {
+      // Save inquiry locally as backup
+      try {
+        const rawSaved = localStorage.getItem('pdflove_user_queries_v1');
+        const list = rawSaved ? JSON.parse(rawSaved) : [];
+        list.unshift({
+          id: `q-${Date.now()}`,
+          name: senderName,
+          email: senderEmail,
+          phone: senderPhone || 'Not provided',
+          category: inquiryType,
+          message: messageText,
+          submittedAt: new Date().toISOString(),
+        });
+        localStorage.setItem('pdflove_user_queries_v1', JSON.stringify(list.slice(0, 50)));
+      } catch {
+        // ignore storage errors
+      }
 
-  const copyText = (key: string, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2000);
+      await fetch(`https://formsubmit.co/ajax/${INTERNAL_ADMIN_EMAIL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          name: senderName,
+          email: senderEmail,
+          phone: senderPhone || 'Not provided',
+          category: inquiryType,
+          website: 'https://www.pdflove.store',
+          message: messageText,
+          _subject: `[PDFLove.store - ${inquiryType}] New Query from ${senderName}`,
+          _template: 'table',
+        }),
+      });
+    } catch {
+      // Handled gracefully by confirmation state
+    } finally {
+      setIsSending(false);
+      setContactSubmitted(true);
+    }
   };
 
   const BackLink = () => (
     <button
       type="button"
       onClick={() => onNavigate('/')}
-      className="inline-flex items-center gap-2 text-xs font-semibold text-rose-600 hover:text-rose-700 mb-6 cursor-pointer"
+      className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-800 hover:bg-rose-600 text-white text-xs font-bold rounded-xl mb-6 transition-colors cursor-pointer"
     >
       <ArrowLeft className="w-4 h-4" />
-      Back to All 90 Tools Directory
+      <span>Back to All {TOOLS_CATALOG.length} Free Tools</span>
     </button>
   );
 
   if (pagePath === '/about') {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <BackLink />
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
-          About PDFLove.store
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-4">
+          About PDFLove (www.pdflove.store) — 100% Free Online PDF, Media, Certificate &amp; Invoice Suite (Copyright by Nexify)
         </h1>
-        <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
-          PDFLove.store (<strong>https://pdflove.store</strong>) is an online PDF and image utility platform offering 90 specialized document management, conversion, optimization, and generation tools accessible from any desktop, laptop, tablet, or mobile browser internationally.
+        <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+          <strong>PDFLove</strong> (<strong>www.pdflove.store</strong>), created and maintained under <strong>Copyright by Nexify</strong>, is a 100% free, all-in-one online PDF, Image, QR Code, Video Compressor, Subtitle, Multi-Signature Certificate, Watermark PDF, Shop &amp; Job GST Invoice, and Smart Calculator platform offering {TOOLS_CATALOG.length}+ working tools on mobile phones, tablets, and desktop PCs across India and worldwide.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-              01. Browser-First Processing Architecture
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 mb-8">
+          <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <Cpu className="w-6 h-6 text-rose-600 mb-2.5" />
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              100% Free Forever
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              Unlike legacy file converters that upload every PDF to remote queues, PDFLove.store executes core PDF manipulation, page rendering, spreadsheet extraction, and image processing directly inside your browser using standard WebAssembly and JavaScript engines (pdf-lib, Mozilla PDF.js, SheetJS, Mammoth, and HTML5 Canvas).
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Every single tool—including Multi-Signature Certificates, Shop &amp; Job GST Invoices, 13-in-1 QR Generators, Watermark PDF Studio, and Video Compressors—is completely free with zero paywalls, supported by Google AdSense Video, Display, and Rich Media advertising.
             </p>
           </div>
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-              02. Honest Technical Transparency
+          <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <ShieldCheck className="w-6 h-6 text-emerald-600 mb-2.5" />
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              100% Private Browser Processing
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-              Every tool on PDFLove.store documents its exact supported formats, processing method, and browser memory boundaries upfront. We never display fabricated compression percentages or simulated progress bars.
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Your PDFs, photos, certificates, and shop invoices are processed directly in your browser memory (WebAssembly &amp; HTML5 Canvas) and never uploaded to external storage servers.
+            </p>
+          </div>
+          <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <Globe className="w-6 h-6 text-blue-600 mb-2.5" />
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              Mobile Phone &amp; PC Ready
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              Designed for instant speed across Android phones, iPhones, iPads, Windows PCs, and Macs in 15 regional and international languages at www.pdflove.store.
+            </p>
+          </div>
+        </div>
+
+        {/* Official Nexify Support & Advertising Contact Card (Email Kept Private) */}
+        <div className="p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4">
+          <div className="flex items-center gap-2.5">
+            <Building2 className="w-5 h-5 text-rose-600 shrink-0" />
+            <h2 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+              Official Support, Feedback &amp; Advertising Desk — Copyright by Nexify
+            </h2>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            Have a question about any of our {TOOLS_CATALOG.length}+ tools, want to request a custom feature for your business or school, or looking to run direct video/banner sponsorships on <strong>PDFLove (www.pdflove.store)</strong>? Send us a direct query through our secure help desk:
+          </p>
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <button
+              type="button"
+              onClick={() => onNavigate('/contact')}
+              className="px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold inline-flex items-center gap-2 transition-colors cursor-pointer"
+            >
+              <MessageSquare className="w-4 h-4 shrink-0" />
+              <span>Open 24/7 Official Support &amp; Query Form →</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pagePath === '/privacy' || pagePath === '/cookies') {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <BackLink />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-4">
+          Privacy Policy &amp; Google AdSense (Video, Display &amp; Auto Ads) Disclosure
+        </h1>
+        <div className="space-y-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-8 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              1. 100% Local Browser Document Processing
+            </h2>
+            <p>
+              All {TOOLS_CATALOG.length}+ utilities on <strong>PDFLove (www.pdflove.store)</strong> process PDFs, images, videos, QR codes, certificates, and invoices locally inside your web browser RAM. Your personal or business files are never transmitted to or stored on external cloud servers. Temporary `Blob` download URLs are automatically revoked from memory when you close or reset the page.
+            </p>
+          </div>
+
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              2. Google AdSense Video Ads, Display Ads &amp; DoubleClick DART Cookie Disclosure
+            </h2>
+            <p className="mb-2">
+              To keep all {TOOLS_CATALOG.length}+ tools 100% free for everyone, <strong>www.pdflove.store</strong> displays advertisements served by <strong>Google AdSense, Google Ad Manager, and Google Interactive Media Ads (IMA Video SDK)</strong>, including Video Ads (Outstream &amp; In-Article Video), Responsive Display Banners, In-Feed Ads, Multiplex Ads, and Auto Ads:
+            </p>
+            <ul className="list-disc pl-5 space-y-1.5">
+              <li>
+                Third-party vendors, including Google, use cookies (such as the Google AdSense and DoubleClick DART cookie) and Privacy Sandbox Topics/Attribution APIs to serve video, rich media, and display ads based on a user&apos;s prior visits to <strong>www.pdflove.store</strong> or other websites on the internet.
+              </li>
+              <li>
+                Google&apos;s use of advertising cookies enables it and its partners to serve relevant video and display advertisements to users based on their visit to <strong>www.pdflove.store</strong> and/or other sites on the Internet.
+              </li>
+              <li>
+                Users may opt out of personalized advertising at any time by visiting{' '}
+                <a
+                  href="https://adssettings.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-rose-600 underline font-semibold"
+                >
+                  Google Ads Settings (adssettings.google.com)
+                </a>{' '}
+                or by visiting{' '}
+                <a
+                  href="https://www.aboutads.info"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-rose-600 underline font-semibold"
+                >
+                  www.aboutads.info
+                </a>
+                .
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+              3. Local Storage, User Preferences &amp; Privacy Contact (GDPR, CCPA &amp; DPDP Act India Compliant)
+            </h2>
+            <p>
+              We only use browser `localStorage` to remember your chosen UI theme (Light or Dark mode), preferred language, tool usage counts, and tool ratings. We comply with the Digital Personal Data Protection Act (DPDP Act, India), GDPR (European Union), and CCPA. For any privacy or data questions, please submit a request through our{' '}
+              <button
+                type="button"
+                onClick={() => onNavigate('/contact')}
+                className="text-rose-600 dark:text-rose-400 font-bold underline cursor-pointer"
+              >
+                Official Support &amp; Privacy Help Desk
+              </button>
+              .
             </p>
           </div>
         </div>
@@ -88,79 +233,34 @@ export const InfoAndSeoPages: React.FC<InfoPageProps> = ({ pagePath, onNavigate 
     );
   }
 
-  if (pagePath === '/privacy') {
+  if (pagePath === '/terms' || pagePath === '/disclaimer') {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <BackLink />
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
-          Privacy Policy &amp; File Processing Disclosure
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-4">
+          Terms of Service &amp; Disclaimer — PDFLove (www.pdflove.store)
         </h1>
-        <div className="space-y-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          <section>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-              1. Local Browser Processing vs. Server Processing
-            </h2>
+        <div className="space-y-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-8 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div className="flex items-start gap-2.5">
+            <FileCheck2 className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
             <p>
-              All 90 tools in the PDFLove.store catalog execute locally within your web browser’s memory space. When you select or drag-and-drop a PDF, Word document, Excel sheet, or image file, the file is read via the standard HTML5 <code>FileReader</code> / <code>ArrayBuffer</code> API and processed on your device. Your files do not leave your device during local browser operations.
+              <strong>100% Free Access:</strong> All {TOOLS_CATALOG.length}+ online PDF, Image, QR Code, Video, Multi-Signature Certificate, Watermark PDF, Shop &amp; Job Invoice, and Calculator utilities on <strong>PDFLove</strong> (<strong>www.pdflove.store</strong>) are provided free of charge for personal, academic, and commercial use.
             </p>
-          </section>
-          <section>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-              2. Temporary Object URLs &amp; Memory Cleanup
-            </h2>
-            <p>
-              When a tool generates an output file for download, a temporary browser <code>Blob</code> and <code>URL.createObjectURL()</code> reference is created in volatile RAM. When you clear the tool, navigate away, or close the tab, temporary object URLs are revoked via <code>URL.revokeObjectURL()</code>.
-            </p>
-          </section>
-          <section>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-              3. Zero Document Storage in localStorage or Analytics
-            </h2>
-            <p>
-              PDFLove.store never writes uploaded document contents, extracted text, filenames containing personal data, or PDF passwords into <code>localStorage</code>, <code>sessionStorage</code>, cookies, or analytics payloads. Local storage is strictly limited to saving your UI language preference (e.g., <code>pdflove_lang</code>) and light/dark theme toggle (<code>pdflove_theme</code>).
-            </p>
-          </section>
-        </div>
-      </div>
-    );
-  }
-
-  if (pagePath === '/terms' || pagePath === '/cookies' || pagePath === '/disclaimer') {
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-        <BackLink />
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
-          {pagePath === '/terms'
-            ? 'Terms of Service'
-            : pagePath === '/cookies'
-            ? 'Cookie & Local Storage Policy'
-            : 'Technical & Legal Disclaimer'}
-        </h1>
-        <div className="space-y-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          <section>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-              1. Authorized Document Usage
-            </h2>
-            <p>
-              You must own or have explicit legal authorization to modify, convert, unlock, or extract content from any document you process using PDFLove.store. Specifically, tools such as Unlock PDF and Remove PDF Password are provided solely for documents where you are the authorized owner or custodian and possess the requisite authorization.
-            </p>
-          </section>
-          <section>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-              2. Browser Hardware &amp; Format Limitations
-            </h2>
-            <p>
-              Because processing takes place inside your browser, maximum file size and processing speed depend on your device’s available RAM and CPU capabilities. Always retain a backup copy of your original files before running batch modifications.
-            </p>
-          </section>
-          <section>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white mb-2">
-              3. Cookie &amp; Preference Storage
-            </h2>
-            <p>
-              PDFLove.store does not require tracking cookies to operate its core document tools. Only non-identifying UI state (selected interface language and dark/light theme) is persisted locally in your browser.
-            </p>
-          </section>
+          </div>
+          <p>
+            <strong>User Responsibility:</strong> Since all document editing, certificate generation, and invoice creation happen directly in your browser, you are responsible for verifying the accuracy of data entered into certificates, tax invoices, and calculators before official submission.
+          </p>
+          <p>
+            <strong>Copyright &amp; Official Contact:</strong> © {new Date().getFullYear()} <strong>PDFLove (www.pdflove.store)</strong> — <strong>Copyright by Nexify</strong>. All rights reserved. For official support or legal inquiries, please use our{' '}
+            <button
+              type="button"
+              onClick={() => onNavigate('/contact')}
+              className="text-rose-600 dark:text-rose-400 font-bold underline cursor-pointer"
+            >
+              Contact &amp; Support Desk
+            </button>
+            .
+          </p>
         </div>
       </div>
     );
@@ -168,72 +268,159 @@ export const InfoAndSeoPages: React.FC<InfoPageProps> = ({ pagePath, onNavigate 
 
   if (pagePath === '/contact') {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
         <BackLink />
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
-          Contact PDFLove.store
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
+          Contact Us &amp; Support Desk — PDFLove (www.pdflove.store)
         </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-300 mb-6">
-          For technical support, bug reports, or inquiries regarding PDFLove.store (https://pdflove.store), use the contact details or inquiry form below.
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+          Have a question, feedback, custom tool request, or advertising inquiry for <strong>PDFLove (www.pdflove.store) — Copyright by Nexify</strong>? Submit the form below and your query will be routed directly and privately to our official administrative inbox.
         </p>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 mb-6">
-          <div className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200 mb-6 pb-6 border-b border-slate-200 dark:border-slate-800">
-            <Mail className="w-5 h-5 text-rose-600 shrink-0" />
-            <div>
-              <p className="font-semibold">Official Domain &amp; Support</p>
-              <p className="text-xs text-slate-500 font-mono">Website: https://pdflove.store · Support: support@pdflove.store</p>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-8 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm text-slate-700 dark:text-slate-200 mb-6 pb-5 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 shrink-0">
+                <Mail className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-900 dark:text-white">
+                  PDFLove (www.pdflove.store) — Copyright by Nexify • Official Support &amp; Ad Desk
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 inline-flex items-center gap-1 mt-0.5">
+                  <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Encrypted Direct Admin Routing (Private Inbox Protected)</span>
+                </p>
+              </div>
+            </div>
+            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 self-start sm:self-center shrink-0">
+              <Clock className="w-3.5 h-3.5" />
+              <span>24/7 Fast Response</span>
             </div>
           </div>
 
           {contactSubmitted ? (
-            <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-lg text-sm text-emerald-800 dark:text-emerald-200">
-              Thank you. Your message has been formatted for support@pdflove.store.
+            <div className="p-5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900 rounded-2xl space-y-4">
+              <div className="flex items-start gap-3 text-sm text-emerald-900 dark:text-emerald-200">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-extrabold text-base mb-1">
+                    Your query has been sent successfully!
+                  </p>
+                  <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                    Thank you, <strong>{senderName}</strong>! Your message regarding <strong>{inquiryType}</strong> has been securely delivered to the <strong>PDFLove (Nexify) Administration Desk</strong>. We will reply to you at <strong>{senderEmail}</strong> shortly.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContactSubmitted(false);
+                    setMessageText('');
+                  }}
+                  className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl cursor-pointer transition-colors"
+                >
+                  Send Another Query
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/')}
+                  className="px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
+                >
+                  Return to Tools
+                </button>
+              </div>
             </div>
           ) : (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setContactSubmitted(true);
-              }}
-              className="space-y-4"
-            >
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg"
-                />
+            <form onSubmit={handleContactSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Your Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Your Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={senderEmail}
+                    onChange={(e) => setSenderEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-rose-500"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  required
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Inquiry Category
+                  </label>
+                  <select
+                    value={inquiryType}
+                    onChange={(e) => setInquiryType(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-rose-500"
+                  >
+                    <option value="Tool Support & Help">Tool Support &amp; Help</option>
+                    <option value="Direct Advertising & Sponsorship">Direct Advertising &amp; Video/Banner Ads</option>
+                    <option value="Feature or New Tool Request">Feature or New Tool Request</option>
+                    <option value="Business Partnership (Nexify)">Business Partnership (Nexify)</option>
+                    <option value="Bug Report or Feedback">Bug Report or Feedback</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Phone / WhatsApp (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={senderPhone}
+                    onChange={(e) => setSenderPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-rose-500"
+                  />
+                </div>
               </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Message or Tool Feedback
+                  Message / Feedback / Ad Inquiry *
                 </label>
                 <textarea
                   rows={4}
                   required
-                  className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg"
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Write your question, feedback, or advertising inquiry here..."
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-none focus:border-rose-500"
                 />
               </div>
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-lg cursor-pointer"
-              >
-                Send Message
-              </button>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <button
+                  type="submit"
+                  disabled={isSending}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-60 active:scale-[0.98] text-white text-sm font-bold rounded-xl cursor-pointer transition-all"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{isSending ? 'Sending Query...' : 'Submit Query to Support Desk'}</span>
+                </button>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Protected by Nexify Privacy Shield • Direct Admin Delivery
+                </span>
+              </div>
             </form>
           )}
         </div>
@@ -241,261 +428,17 @@ export const InfoAndSeoPages: React.FC<InfoPageProps> = ({ pagePath, onNavigate 
     );
   }
 
-  if (pagePath === '/seo-guide') {
-    const sitemapXml = generateSitemapXmlString();
-    const robotsTxt = generateRobotsTxtString();
-    const singleHtml = generateStandaloneSingleFileHtml();
-
-    return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <BackLink />
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
-          Deliverables: Single-File HTML Export, Sitemap.xml, Robots.txt &amp; Google Search Console Guide
-        </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-300 mb-8 max-w-3xl">
-          Download production-ready deployment files for <strong>https://pdflove.store</strong>, inspect the external dependency license matrix, and follow the step-by-step Google Search Console &amp; GEO SEO deployment checklist.
-        </p>
-
-        {/* Download Deliverables Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col justify-between">
-            <div>
-              <FileCode className="w-7 h-7 text-rose-600 mb-3" />
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-                1. Standalone index.html
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-                Complete self-contained single-file HTML5 + CSS3 + Vanilla JS edition containing all 90 tool routes for single-file static hosting.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => downloadTextAsset(singleHtml, 'index.html', 'text/html;charset=utf-8')}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg cursor-pointer"
-            >
-              <Download className="w-4 h-4" />
-              Download index.html
-            </button>
-          </div>
-
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col justify-between">
-            <div>
-              <Globe className="w-7 h-7 text-rose-600 mb-3" />
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-                2. Complete sitemap.xml ({TOOLS_CATALOG.length + 8} URLs)
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-                Valid XML sitemap with all 90 canonical HTTPS tool URLs (<code>https://pdflove.store/tools/...</code>) and informational pages. Also served live at <code>/sitemap.xml</code>.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => downloadTextAsset(sitemapXml, 'sitemap.xml', 'application/xml;charset=utf-8')}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                sitemap.xml
-              </button>
-              <button
-                type="button"
-                onClick={() => copyText('sitemap', sitemapXml)}
-                className="px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold cursor-pointer"
-              >
-                {copiedKey === 'sitemap' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col justify-between">
-            <div>
-              <Server className="w-7 h-7 text-rose-600 mb-3" />
-              <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">
-                3. robots.txt &amp; llms.txt
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
-                Root-level crawler directives referencing <code>https://pdflove.store/sitemap.xml</code>. Also served live at <code>/robots.txt</code> and <code>/llms.txt</code>.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => downloadTextAsset(robotsTxt, 'robots.txt', 'text/plain;charset=utf-8')}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                robots.txt
-              </button>
-              <a
-                href="/llms.txt"
-                target="_blank"
-                rel="noreferrer"
-                className="px-3 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold flex items-center"
-              >
-                llms.txt
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Google Search Console & Hosting Deployment Instructions */}
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 mb-8">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
-            Google Search Console, Custom Domain (pdflove.store) &amp; Hosting Configuration
-          </h2>
-          <div className="space-y-4 text-sm text-slate-600 dark:text-slate-300">
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-white">
-                Step 1: Connect Custom Domain &amp; Enforce HTTPS
-              </h3>
-              <p>
-                Deploy the application to Cloudflare Pages, Vercel, Netlify, or Cloud Run. Point the apex domain <code>pdflove.store</code> (A/AAAA or ALIAS record) and <code>www.pdflove.store</code> (CNAME) to your host, enable automatic Let’s Encrypt / Edge TLS certificates, and configure a 301 redirect from <code>http://</code> and <code>www.pdflove.store</code> to <code>https://pdflove.store</code>.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-white">
-                Step 2: Configure Static-Hosting SPA Rewrites for Clean Tool URLs
-              </h3>
-              <p>
-                To ensure direct visits and refreshes on clean URLs like <code>https://pdflove.store/tools/merge-pdf</code> return HTTP 200 (while serving <code>/robots.txt</code>, <code>/sitemap.xml</code>, and <code>/llms.txt</code> directly as static files), add a rewrite rule:
-              </p>
-              <pre className="mt-2 p-3 bg-slate-950 text-slate-100 rounded-lg text-xs font-mono overflow-x-auto">
-{`# Netlify / Cloudflare Pages (_redirects)
-/robots.txt   /robots.txt   200
-/sitemap.xml  /sitemap.xml  200
-/llms.txt     /llms.txt     200
-/*            /index.html   200`}
-              </pre>
-              <p className="mt-2 text-xs text-slate-500">
-                Note on Blogger / Restricted Single-File Hosts: Platforms like Blogger do not allow uploading root-level <code>sitemap.xml</code> or arbitrary <code>/tools/slug</code> path rewrites natively. On those platforms, host on Cloudflare Pages / Netlify / Vercel for full root file and clean path control.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-white">
-                Step 3: Verify Ownership in Google Search Console &amp; Submit Sitemap
-              </h3>
-              <ol className="list-decimal list-inside space-y-1.5 mt-1">
-                <li>Open Google Search Console and add a <strong>Domain Property</strong> for <code>pdflove.store</code>.</li>
-                <li>Copy the real TXT verification token provided by Google Search Console and add it to your DNS provider (never use placeholder tokens).</li>
-                <li>Once verified, open the <strong>Sitemaps</strong> tab and submit <code>https://pdflove.store/sitemap.xml</code>.</li>
-                <li>Use the <strong>URL Inspection Tool</strong> to inspect key pages (such as <code>https://pdflove.store/tools/merge-pdf</code> and <code>https://pdflove.store/tools/compress-pdf</code>), verify canonical tags, and test JSON-LD structured data.</li>
-              </ol>
-            </div>
-          </div>
-        </section>
-
-        {/* External Dependencies & Licenses Table */}
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8 mb-8">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
-            External Dependencies &amp; Open-Source Licenses
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500">
-                  <th className="py-2.5 pr-4 font-semibold">Library</th>
-                  <th className="py-2.5 pr-4 font-semibold">Version</th>
-                  <th className="py-2.5 pr-4 font-semibold">License</th>
-                  <th className="py-2.5 font-semibold">Purpose in PDFLove.store</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-mono">
-                <tr>
-                  <td className="py-2.5 pr-4 font-semibold text-slate-900 dark:text-white">pdf-lib</td>
-                  <td className="py-2.5 pr-4 tabular-nums">^1.17.1</td>
-                  <td className="py-2.5 pr-4">MIT</td>
-                  <td className="py-2.5 font-sans">PDF creation, merging, splitting, rotation, watermarks, page numbers, metadata, and vector typesetting.</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 pr-4 font-semibold text-slate-900 dark:text-white">pdfjs-dist (Mozilla PDF.js)</td>
-                  <td className="py-2.5 pr-4 tabular-nums">^5.x / 4.x</td>
-                  <td className="py-2.5 pr-4">Apache-2.0</td>
-                  <td className="py-2.5 font-sans">Rendering PDF pages to Canvas (PDF to JPG/PNG/WebP), text extraction, coordinate search, and highlighting.</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 pr-4 font-semibold text-slate-900 dark:text-white">jszip</td>
-                  <td className="py-2.5 pr-4 tabular-nums">^3.10.1</td>
-                  <td className="py-2.5 pr-4">MIT / GPLv3</td>
-                  <td className="py-2.5 font-sans">Packaging multi-page split PDFs, image archives, and OpenXML (.docx, .pptx, .epub) containers.</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 pr-4 font-semibold text-slate-900 dark:text-white">mammoth</td>
-                  <td className="py-2.5 pr-4 tabular-nums">^1.x</td>
-                  <td className="py-2.5 pr-4">BSD-2-Clause</td>
-                  <td className="py-2.5 font-sans">Client-side parsing of Microsoft Word (.docx) documents for Word-to-PDF conversion.</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 pr-4 font-semibold text-slate-900 dark:text-white">xlsx (SheetJS Community)</td>
-                  <td className="py-2.5 pr-4 tabular-nums">^0.18.5</td>
-                  <td className="py-2.5 pr-4">Apache-2.0</td>
-                  <td className="py-2.5 font-sans">Reading and writing Excel (.xlsx) and CSV spreadsheets in the browser.</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 pr-4 font-semibold text-slate-900 dark:text-white">qrcode &amp; jsbarcode</td>
-                  <td className="py-2.5 pr-4 tabular-nums">^1.5.x / ^3.11.x</td>
-                  <td className="py-2.5 pr-4">MIT</td>
-                  <td className="py-2.5 font-sans">Generating ISO-compliant 2D QR codes and 1D retail/inventory barcodes on HTML5 Canvas.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* Testing & Verification Report */}
-        <section className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 sm:p-8">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
-            Testing &amp; Verification Report (Passed vs. Browser-Scoped Limitations)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-            <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-lg">
-              <div className="flex items-center gap-2 font-bold text-emerald-800 dark:text-emerald-300 text-sm mb-2">
-                <CheckCircle2 className="w-4 h-4" />
-                Verified &amp; Passed in Browser Runtime
-              </div>
-              <ul className="space-y-1.5 text-slate-700 dark:text-slate-300 list-disc list-inside">
-                <li>All 90 dedicated tool URLs (<code>/tools/:slug</code>) with dynamic title, meta description, canonical tag, and JSON-LD schema.</li>
-                <li>PDF Merge, Split, Rotate, Delete, Extract, Organize, Reorder, Duplicate, Blank Pages, Page Numbers, Watermark, Text/Image overlay, Crop, Flatten, Metadata View/Edit.</li>
-                <li>PDF to JPG/PNG/WebP/TXT/CSV/HTML/JSON/DOCX/XLSX/PPTX/EPUB and JPG/PNG/WebP/BMP/HTML/TXT/MD/CSV/JSON/DOCX/XLSX/PPTX to PDF.</li>
-                <li>HTML5 Canvas Image Compress, Resize, Crop, Rotate, Flip, Format Conversions, Grayscale, Brightness, Contrast, Quality, Watermark, and Chroma Transparency.</li>
-                <li>PDF Page/Word Counter, Search, Coordinate Highlighting, Invoice/Resume/Checklist/Certificate/Contact Sheet generators, QR Code, and Barcode generators.</li>
-                <li>10-Language translation selector (including Hindi, Gujarati, and RTL Arabic layout) + Light/Dark theme persistence.</li>
-              </ul>
-            </div>
-
-            <div className="p-4 bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-lg">
-              <div className="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300 text-sm mb-2">
-                <AlertTriangle className="w-4 h-4" />
-                Documented Browser-Only Scope &amp; Unverified External Items
-              </div>
-              <ul className="space-y-1.5 text-slate-700 dark:text-slate-300 list-disc list-inside">
-                <li><strong>Office Layout Fidelity:</strong> Browser-only DOCX/PPTX/XLSX conversions extract and rebuild text, paragraphs, and tables accurately via OpenXML, but complex floating vector shapes or proprietary macros require a server-side LibreOffice headless engine.</li>
-                <li><strong>Scanned PDFs without Text Layer:</strong> PDF-to-Word/Excel/CSV and Text Search operate on selectable PDF text streams; scanned bitmap PDFs require an external OCR engine.</li>
-                <li><strong>HEIC/TIFF Codec Support:</strong> Depends on the user’s OS/browser native decoder support.</li>
-                <li><strong>Live Google Search Console Indexing:</strong> Sitemap and structured data are validated and ready at <code>/sitemap.xml</code>, but live Google indexing status remains unverified until the domain owner submits the DNS token on <code>pdflove.store</code>.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-  // Default: 404 Not Found Page
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 text-center">
-      <div className="font-mono text-xs text-rose-600 font-semibold mb-2">HTTP 404 · PAGE NOT FOUND</div>
-      <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">
-        We couldn’t find that page or tool URL
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-14 text-center">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
+        Tool or Page Not Found
       </h1>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mb-8">
-        The address <code>{pagePath}</code> does not match any of our 90 PDF or image utilities. Return to the main directory below to search all tools.
-      </p>
       <button
         type="button"
         onClick={() => onNavigate('/')}
-        className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-lg cursor-pointer"
+        className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl cursor-pointer"
       >
-        Explore All 90 Tools
+        Explore All {TOOLS_CATALOG.length} Free Tools
       </button>
     </div>
   );

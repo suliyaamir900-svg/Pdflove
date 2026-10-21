@@ -1,9 +1,6 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import * as XLSX from 'xlsx';
-import JSZip from 'jszip';
-
 export async function generateSampleFileForTool(slug: string, acceptMime: string): Promise<File> {
   if (acceptMime.includes('.docx')) {
+    const { default: JSZip } = await import('jszip');
     const zip = new JSZip();
     zip.file(
       '[Content_Types].xml',
@@ -24,6 +21,7 @@ export async function generateSampleFileForTool(slug: string, acceptMime: string
   }
 
   if (acceptMime.includes('.xlsx')) {
+    const XLSX = await import('xlsx');
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet([
       ['Tool Name', 'Category', 'Processing Mode', 'Status'],
@@ -39,6 +37,7 @@ export async function generateSampleFileForTool(slug: string, acceptMime: string
   }
 
   if (acceptMime.includes('.pptx')) {
+    const { default: JSZip } = await import('jszip');
     const zip = new JSZip();
     zip.folder('ppt/slides')?.file(
       'slide1.xml',
@@ -123,6 +122,7 @@ export async function generateSampleFileForTool(slug: string, acceptMime: string
   }
 
   if (acceptMime.includes('.zip')) {
+    const { default: JSZip } = await import('jszip');
     const zip = new JSZip();
     zip.file('readme.txt', 'PDFLove.store Sample ZIP Archive Entry 1');
     zip.file('report-summary.csv', 'Month,Users,Documents\nOctober,125000,480000');
@@ -155,6 +155,7 @@ export async function generateSampleFileForTool(slug: string, acceptMime: string
   }
 
   // Default: Generate a real 3-page PDF document with text, table rows, and metadata
+  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
   const pdfDoc = await PDFDocument.create();
   pdfDoc.setTitle('PDFLove.store Sample Document');
   pdfDoc.setAuthor('PDFLove.store Verification Suite');

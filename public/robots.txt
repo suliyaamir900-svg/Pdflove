@@ -1,5 +1,48 @@
 User-agent: *
 Allow: /
-Disallow: /blob:
 
-Sitemap: https://pdflove.store/sitemap.xml
+# Google AdSense, Google Video Ads & Mobile Ad Mediapartners Crawlers
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: AdsBot-Google-Mobile
+Allow: /
+
+User-agent: Google-Display-Ads-Bot
+Allow: /
+
+# AI Answer Engine & Generative Search Crawlers (AEO & GEO)
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+Host: https://www.pdflove.store
+Sitemap: https://www.pdflove.store/sitemap.xml
+Sitemap: https://www.pdflove.store/sitemap-index.xml
+
