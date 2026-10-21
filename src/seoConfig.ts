@@ -1,6 +1,12 @@
 import { TOOLS_CATALOG, ToolDefinition } from './data/toolsCatalog';
 import { LanguageCode, SUPPORTED_LANGUAGES } from './data/translations';
 import { buildBeyondSeoProfileForTool, BEYOND_SEO_VERSION } from './beyondSeoEngine';
+export {
+  generateCompleteSitemapXml,
+  getCompleteSitemapEntries,
+  type SitemapUrlEntry,
+  type SitemapExportOptions,
+} from './services/sitemapGenerator';
 
 export const SEO_SITE_ORIGIN = 'https://www.pdflove.store';
 
@@ -187,8 +193,232 @@ export const PDFLAW_LOCAL_BUSINESS_SCHEMA = {
   },
 };
 
-function buildToolStructuredData(tool: ToolDefinition, canonicalUrl: string) {
+export interface StandardToolSchemaOverrideOptions {
+  canonicalUrl?: string;
+  aggregateRating?: Record<string, unknown>;
+  reviews?: Record<string, unknown>[];
+}
+
+export function buildStandardToolSoftwareApplicationSchema(
+  tool: ToolDefinition,
+  options?: StandardToolSchemaOverrideOptions
+): Record<string, unknown> {
+  const canonicalUrl = options?.canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
   const toolGeoKeywords = [...tool.seoKeywords, ...buildToolGeographyKeywords(tool), ...UNIVERSAL_PDF_KEYWORDS];
+  const defaultRatingCount = 1280 + tool.number * 19;
+  const defaultReviewCount = Math.max(120, Math.round(defaultRatingCount * 0.34));
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    '@id': `${canonicalUrl}#software`,
+    name: `${tool.name} – PDFLove (www.pdflove.store)`,
+    alternateName: [tool.name, `${tool.name} Online Free`, `${tool.name} PDFLove`, ...tool.aliases.slice(0, 4)],
+    url: canonicalUrl,
+    applicationCategory: 'UtilitiesApplication, BusinessApplication',
+    applicationSubCategory: `${tool.category} (${tool.filterTag})`,
+    operatingSystem: 'All (Android Phone, iPhone, iPad, Windows PC, Mac, Linux)',
+    browserRequirements: 'Requires HTML5 Canvas, Web Audio, and ES2020+ JavaScript',
+    softwareVersion: '2026.4.0',
+    isAccessibleForFree: true,
+    description: tool.seoDescription || tool.introDefinition,
+    abstract: tool.aeoDirectAnswer,
+    keywords: toolGeoKeywords.join(', '),
+    screenshot: `${SEO_SITE_ORIGIN}/og-cover.svg`,
+    areaServed: [
+      ...GEOGRAPHY_TARGET_COUNTRIES.map((c) => ({ '@type': 'Country', name: c.name })),
+      ...INDIA_AND_GLOBAL_HUBS.map((city) => ({ '@type': 'City', name: city })),
+    ],
+    availableLanguage: SUPPORTED_LANGUAGES.map((l) => l.name),
+    featureList: [
+      ...tool.geoKeyFacts,
+      `Supports ${tool.supportedFormats.join(', ')}`,
+      '100% Free Forever — No Paywalls, No Watermarks, Unlimited Usage',
+      '100% Client-Side Local Browser Processing on Phone, Tablet & PC',
+      'Zero Server Upload — Instant Download',
+    ],
+    author: {
+      '@type': 'Organization',
+      '@id': `${SEO_SITE_ORIGIN}/#organization`,
+      name: 'PDFLove',
+      legalName: 'Nexify',
+      url: `${SEO_SITE_ORIGIN}/`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      '@id': `${SEO_SITE_ORIGIN}/#organization`,
+      name: 'PDFLove (Copyright by Nexify)',
+      url: `${SEO_SITE_ORIGIN}/`,
+    },
+    copyrightHolder: {
+      '@type': 'Organization',
+      name: 'Nexify',
+    },
+    copyrightNotice: 'Copyright by Nexify',
+    aggregateRating: options?.aggregateRating || {
+      '@type': 'AggregateRating',
+      '@id': `${canonicalUrl}#aggregate-rating`,
+      ratingValue: '4.9',
+      bestRating: '5',
+      worstRating: '1',
+      ratingCount: String(defaultRatingCount),
+      reviewCount: String(defaultReviewCount),
+    },
+    review: options?.reviews || [
+      {
+        '@type': 'Review',
+        '@id': `${canonicalUrl}#review-1`,
+        name: `Best free ${tool.name} online — fast & no watermark`,
+        reviewBody: `Used ${tool.name} on PDFLove (www.pdflove.store) on mobile phone and laptop. Instant client-side processing with 100% privacy.`,
+        datePublished: '2026-10-18',
+        author: { '@type': 'Person', name: 'Rahul Sharma' },
+        reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5', worstRating: '1' },
+      },
+      {
+        '@type': 'Review',
+        '@id': `${canonicalUrl}#review-2`,
+        name: `Works smoothly on Android phone and PC`,
+        reviewBody: `${tool.name} by Nexify is 100% free forever with top-notch ${tool.filterTag} output quality.`,
+        datePublished: '2026-10-14',
+        author: { '@type': 'Person', name: 'Priya Patel' },
+        reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5', worstRating: '1' },
+      },
+    ],
+    offers: {
+      '@type': 'AggregateOffer',
+      '@id': `${canonicalUrl}#aggregate-offer`,
+      lowPrice: '0',
+      highPrice: '0',
+      priceCurrency: 'INR',
+      offerCount: '3',
+      availability: 'https://schema.org/InStock',
+      url: canonicalUrl,
+      seller: {
+        '@type': 'Organization',
+        name: 'PDFLove (www.pdflove.store) — Copyright by Nexify',
+        url: `${SEO_SITE_ORIGIN}/`,
+      },
+      offers: [
+        {
+          '@type': 'Offer',
+          name: `${tool.name} – Free Forever Plan (India INR)`,
+          price: '0',
+          priceCurrency: 'INR',
+          availability: 'https://schema.org/InStock',
+          url: canonicalUrl,
+          areaServed: 'IN',
+        },
+        {
+          '@type': 'Offer',
+          name: `${tool.name} – Free Forever Plan (Global USD)`,
+          price: '0',
+          priceCurrency: 'USD',
+          availability: 'https://schema.org/InStock',
+          url: canonicalUrl,
+          areaServed: 'Worldwide',
+        },
+        {
+          '@type': 'Offer',
+          name: `${tool.name} – Free Forever Plan (Europe EUR)`,
+          price: '0',
+          priceCurrency: 'EUR',
+          availability: 'https://schema.org/InStock',
+          url: canonicalUrl,
+          areaServed: 'EU',
+        },
+      ],
+    },
+  };
+}
+
+export function buildStandardToolBreadcrumbSchema(
+  tool: ToolDefinition,
+  canonicalUrl?: string
+): Record<string, unknown> {
+  const resolvedUrl = canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    '@id': `${resolvedUrl}#breadcrumb`,
+    name: `${tool.name} Breadcrumb Hierarchy`,
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home (PDFLove)',
+        item: `${SEO_SITE_ORIGIN}/`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: `${tool.filterTag}`,
+        item: `${SEO_SITE_ORIGIN}/?category=${encodeURIComponent(tool.filterTag)}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: tool.name,
+        item: resolvedUrl,
+      },
+    ],
+  };
+}
+
+export function buildStandardToolFaqPageSchema(
+  tool: ToolDefinition,
+  canonicalUrl?: string
+): Record<string, unknown> {
+  const resolvedUrl = canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  const beyondProfile = buildBeyondSeoProfileForTool(tool, `/tools/${tool.slug}`);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': `${resolvedUrl}#faq`,
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: `How does ${tool.name} work online on www.pdflove.store?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: tool.aeoDirectAnswer,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: `Does ${tool.name} work on mobile phones and PC browsers in India and worldwide?`,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: `Yes, ${tool.name} on PDFLove (www.pdflove.store) is 100% responsive and works smoothly on Android phones, iPhones, tablets, Windows PCs, and Macs across India and worldwide without installing any app.`,
+        },
+      },
+      {
+        '@type': 'Question',
+        name: beyondProfile.conversationQuestion,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: beyondProfile.conversationAnswer,
+        },
+      },
+      ...tool.faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.q,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.a,
+        },
+      })),
+    ],
+  };
+}
+
+function buildToolStructuredData(tool: ToolDefinition, canonicalUrl: string) {
+  const softwareNode = { ...buildStandardToolSoftwareApplicationSchema(tool, { canonicalUrl }) };
+  delete softwareNode['@context'];
+  const breadcrumbNode = { ...buildStandardToolBreadcrumbSchema(tool, canonicalUrl) };
+  delete breadcrumbNode['@context'];
+  const faqNode = { ...buildStandardToolFaqPageSchema(tool, canonicalUrl) };
+  delete faqNode['@context'];
+
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -244,104 +474,7 @@ function buildToolStructuredData(tool: ToolDefinition, canonicalUrl: string) {
           cssSelector: ['#aeo-direct-answer', '#tool-intro-definition', '#howto-steps'],
         },
       },
-      {
-        '@type': 'SoftwareApplication',
-        '@id': `${canonicalUrl}#software`,
-        name: `${tool.name} – PDFLove (www.pdflove.store)`,
-        alternateName: [tool.name, `${tool.name} Online Free`, ...tool.aliases.slice(0, 3)],
-        url: canonicalUrl,
-        applicationCategory: 'UtilitiesApplication, BusinessApplication',
-        applicationSubCategory: `${tool.category} (${tool.filterTag})`,
-        operatingSystem: 'All (Android Phone, iPhone, iPad, Windows PC, Mac, Linux)',
-        browserRequirements: 'Requires HTML5 Canvas, Web Audio, and ES2020+ JavaScript',
-        softwareVersion: '2026.4.0',
-        isAccessibleForFree: true,
-        description: tool.introDefinition,
-        abstract: tool.aeoDirectAnswer,
-        keywords: toolGeoKeywords.join(', '),
-        areaServed: [
-          ...GEOGRAPHY_TARGET_COUNTRIES.map((c) => ({ '@type': 'Country', name: c.name })),
-          ...INDIA_AND_GLOBAL_HUBS.map((city) => ({ '@type': 'City', name: city })),
-        ],
-        availableLanguage: SUPPORTED_LANGUAGES.map((l) => l.name),
-        featureList: [
-          ...tool.geoKeyFacts,
-          `Supports ${tool.supportedFormats.join(', ')}`,
-          '100% Free Forever — No Paywalls, No Watermarks, Unlimited Usage',
-          '100% Client-Side Local Browser Processing on Phone, Tablet & PC',
-          'Zero Server Upload — Instant Download',
-        ],
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          '@id': `${canonicalUrl}#aggregate-rating`,
-          ratingValue: '4.9',
-          bestRating: '5',
-          worstRating: '1',
-          ratingCount: String(1280 + tool.number * 19),
-          reviewCount: String(Math.max(120, Math.round((1280 + tool.number * 19) * 0.34))),
-        },
-        review: [
-          {
-            '@type': 'Review',
-            '@id': `${canonicalUrl}#review-1`,
-            name: `Best free ${tool.name} online — fast & no watermark`,
-            reviewBody: `Used ${tool.name} on PDFLove (www.pdflove.store) on mobile phone and laptop. Instant client-side processing with 100% privacy.`,
-            datePublished: '2026-10-18',
-            author: { '@type': 'Person', name: 'Rahul Sharma' },
-            reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5', worstRating: '1' },
-          },
-          {
-            '@type': 'Review',
-            '@id': `${canonicalUrl}#review-2`,
-            name: `Works smoothly on Android phone and PC`,
-            reviewBody: `${tool.name} by Nexify is 100% free forever with top-notch ${tool.filterTag} output quality.`,
-            datePublished: '2026-10-14',
-            author: { '@type': 'Person', name: 'Priya Patel' },
-            reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5', worstRating: '1' },
-          },
-        ],
-        offers: {
-          '@type': 'AggregateOffer',
-          '@id': `${canonicalUrl}#aggregate-offer`,
-          lowPrice: '0',
-          highPrice: '0',
-          priceCurrency: 'INR',
-          offerCount: '3',
-          availability: 'https://schema.org/InStock',
-          url: canonicalUrl,
-          seller: {
-            '@type': 'Organization',
-            name: 'PDFLove (www.pdflove.store) — Copyright by Nexify',
-            url: `${SEO_SITE_ORIGIN}/`,
-          },
-          offers: [
-            {
-              '@type': 'Offer',
-              name: `${tool.name} – Free Forever Plan (India INR)`,
-              price: '0',
-              priceCurrency: 'INR',
-              availability: 'https://schema.org/InStock',
-              areaServed: 'IN',
-            },
-            {
-              '@type': 'Offer',
-              name: `${tool.name} – Free Forever Plan (Global USD)`,
-              price: '0',
-              priceCurrency: 'USD',
-              availability: 'https://schema.org/InStock',
-              areaServed: 'Worldwide',
-            },
-            {
-              '@type': 'Offer',
-              name: `${tool.name} – Free Forever Plan (Europe EUR)`,
-              price: '0',
-              priceCurrency: 'EUR',
-              availability: 'https://schema.org/InStock',
-              areaServed: 'EU',
-            },
-          ],
-        },
-      },
+      softwareNode,
       {
         '@type': 'HowTo',
         '@id': `${canonicalUrl}#howto`,
@@ -356,69 +489,8 @@ function buildToolStructuredData(tool: ToolDefinition, canonicalUrl: string) {
           url: `${canonicalUrl}#step-${idx + 1}`,
         })),
       },
-      {
-        '@type': 'BreadcrumbList',
-        '@id': `${canonicalUrl}#breadcrumb`,
-        name: `${tool.name} Breadcrumb Hierarchy`,
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home (PDFLove)',
-            item: `${SEO_SITE_ORIGIN}/`,
-          },
-          {
-            '@type': 'ListItem',
-            position: 2,
-            name: `${tool.filterTag}`,
-            item: `${SEO_SITE_ORIGIN}/?category=${encodeURIComponent(tool.filterTag)}`,
-          },
-          {
-            '@type': 'ListItem',
-            position: 3,
-            name: tool.name,
-            item: canonicalUrl,
-          },
-        ],
-      },
-      {
-        '@type': 'FAQPage',
-        '@id': `${canonicalUrl}#faq`,
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: `How does ${tool.name} work online on www.pdflove.store?`,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: tool.aeoDirectAnswer,
-            },
-          },
-          {
-            '@type': 'Question',
-            name: `Does ${tool.name} work on mobile phones and PC browsers in India and worldwide?`,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: `Yes, ${tool.name} on PDFLove (www.pdflove.store) is 100% responsive and works smoothly on Android phones, iPhones, tablets, Windows PCs, and Macs across India and worldwide without installing any app.`,
-            },
-          },
-          {
-            '@type': 'Question',
-            name: buildBeyondSeoProfileForTool(tool, `/tools/${tool.slug}`).conversationQuestion,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: buildBeyondSeoProfileForTool(tool, `/tools/${tool.slug}`).conversationAnswer,
-            },
-          },
-          ...tool.faqs.map((faq) => ({
-            '@type': 'Question',
-            name: faq.q,
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: faq.a,
-            },
-          })),
-        ],
-      },
+      breadcrumbNode,
+      faqNode,
       PDFLAW_LOCAL_BUSINESS_SCHEMA,
     ],
   };
@@ -902,7 +974,110 @@ export function applySeoConfigToHead(path: string, lang: LanguageCode): void {
     if (dynamicJsonLdScript) {
       dynamicJsonLdScript.textContent = JSON.stringify(meta.structuredData);
     }
+
+    // 9. Standardized Per-Tool Schema Head Injection (SoftwareApplication, BreadcrumbList, FAQPage)
+    if (activeToolObj) {
+      injectStandardToolJsonLdToHead(activeToolObj);
+    } else {
+      clearStandardToolJsonLdFromHead();
+    }
   } catch {
     // Prevent any DOM head manipulation error from affecting UI
   }
 }
+
+const TOOL_HEAD_SCHEMA_SCRIPT_IDS = [
+  'tool-software-application-jsonld',
+  'tool-breadcrumb-jsonld',
+  'tool-faqpage-jsonld',
+] as const;
+
+/**
+ * Removes tool-specific JSON-LD script tags from document.head when navigating away from tool pages.
+ */
+export function clearStandardToolJsonLdFromHead(): void {
+  try {
+    TOOL_HEAD_SCHEMA_SCRIPT_IDS.forEach((id) => {
+      document.getElementById(id)?.remove();
+    });
+    document.querySelectorAll('script[data-pdflove-tool-schema="true"]').forEach((el) => el.remove());
+  } catch {
+    // ignore DOM cleanup errors
+  }
+}
+
+/**
+ * Standardized SEO helper function that automatically builds and injects
+ * 'SoftwareApplication', 'BreadcrumbList', and 'FAQPage' JSON-LD schemas into
+ * document.head for any tool page based on the tool's metadata (and optional live ratings/reviews),
+ * while keeping the master #dynamic-jsonld @graph synchronized 1:1.
+ */
+export function injectStandardToolJsonLdToHead(
+  tool: ToolDefinition,
+  options?: StandardToolSchemaOverrideOptions
+): {
+  softwareSchema: Record<string, unknown>;
+  breadcrumbSchema: Record<string, unknown>;
+  faqPageSchema: Record<string, unknown>;
+} {
+  const canonicalUrl = options?.canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  const softwareSchema = buildStandardToolSoftwareApplicationSchema(tool, {
+    ...options,
+    canonicalUrl,
+  });
+  const breadcrumbSchema = buildStandardToolBreadcrumbSchema(tool, canonicalUrl);
+  const faqPageSchema = buildStandardToolFaqPageSchema(tool, canonicalUrl);
+
+  try {
+    const upsertHeadJsonLdScript = (scriptId: string, schemaType: string, payload: Record<string, unknown>) => {
+      let scriptEl = document.getElementById(scriptId) as HTMLScriptElement | null;
+      if (!scriptEl) {
+        scriptEl = document.createElement('script');
+        scriptEl.id = scriptId;
+        scriptEl.type = 'application/ld+json';
+        scriptEl.setAttribute('data-pdflove-tool-schema', 'true');
+        scriptEl.setAttribute('data-schema-type', schemaType);
+        scriptEl.setAttribute('data-tool-slug', tool.slug);
+        document.head.appendChild(scriptEl);
+      } else {
+        scriptEl.setAttribute('data-tool-slug', tool.slug);
+      }
+      scriptEl.textContent = JSON.stringify(payload);
+    };
+
+    upsertHeadJsonLdScript('tool-software-application-jsonld', 'SoftwareApplication', softwareSchema);
+    upsertHeadJsonLdScript('tool-breadcrumb-jsonld', 'BreadcrumbList', breadcrumbSchema);
+    upsertHeadJsonLdScript('tool-faqpage-jsonld', 'FAQPage', faqPageSchema);
+
+    // Keep the unified #dynamic-jsonld @graph in <head> synchronized with live SoftwareApplication, BreadcrumbList & FAQPage nodes
+    const globalJsonLd = document.getElementById('dynamic-jsonld') || document.getElementById('schema-jsonld');
+    if (globalJsonLd && globalJsonLd.textContent) {
+      const parsed = JSON.parse(globalJsonLd.textContent);
+      if (parsed && Array.isArray(parsed['@graph'])) {
+        const cleanSoftware = { ...softwareSchema };
+        delete cleanSoftware['@context'];
+        const cleanBreadcrumb = { ...breadcrumbSchema };
+        delete cleanBreadcrumb['@context'];
+        const cleanFaq = { ...faqPageSchema };
+        delete cleanFaq['@context'];
+
+        parsed['@graph'] = parsed['@graph'].map((node: Record<string, unknown>) => {
+          if (node['@type'] === 'SoftwareApplication') return cleanSoftware;
+          if (node['@type'] === 'BreadcrumbList') return cleanBreadcrumb;
+          if (node['@type'] === 'FAQPage') return cleanFaq;
+          return node;
+        });
+        globalJsonLd.textContent = JSON.stringify(parsed);
+      }
+    }
+  } catch {
+    // Prevent DOM head manipulation errors from affecting UI execution
+  }
+
+  return {
+    softwareSchema,
+    breadcrumbSchema,
+    faqPageSchema,
+  };
+}
+

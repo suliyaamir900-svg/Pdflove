@@ -127,18 +127,15 @@ export function updateDocumentSeoAndSchema(
   }
 }
 
+export { generateCompleteSitemapXml, getCompleteSitemapEntries } from './sitemapGenerator';
+import { generateCompleteSitemapXml as buildCompleteSitemapXml } from './sitemapGenerator';
+
 export function generateSitemapXmlString(): string {
-  const baseUrl = 'https://pdflove.store';
-  const staticPaths = ['/', '/about', '/privacy', '/terms', '/cookies', '/disclaimer', '/contact', '/seo-guide'];
-  const urls = [
-    ...staticPaths.map((p) => `  <url>\n    <loc>${baseUrl}${p}</loc>\n  </url>`),
-    ...TOOLS_CATALOG.map((t) => `  <url>\n    <loc>${baseUrl}/tools/${t.slug}</loc>\n  </url>`),
-  ];
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`;
+  return buildCompleteSitemapXml();
 }
 
 export function generateRobotsTxtString(): string {
-  return `User-agent: *\nAllow: /\n\nSitemap: https://pdflove.store/sitemap.xml\n`;
+  return `User-agent: *\nAllow: /\n\nSitemap: https://www.pdflove.store/sitemap.xml\nSitemap: https://www.pdflove.store/sitemap-index.xml\n`;
 }
 
 // Generates a complete, runnable Vanilla HTML5 + CSS3 + JS single-file "index.html"

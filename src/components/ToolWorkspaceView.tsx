@@ -28,7 +28,11 @@ import {
 import { ToolDefinition, getToolBySlug, TOOLS_CATALOG } from '../data/toolsCatalog';
 import { TranslationDictionary } from '../data/translations';
 import type { ProcessingResult } from '../services/documentEngine';
-import { resolveSeoConfigForPath } from '../seoConfig';
+import {
+  injectStandardToolJsonLdToHead,
+  clearStandardToolJsonLdFromHead,
+  buildStandardToolSoftwareApplicationSchema,
+} from '../seoConfig';
 import { buildBeyondSeoProfileForTool } from '../beyondSeoEngine';
 import { AdSenseSlot } from './AdSenseSlot';
 import {
@@ -252,128 +256,43 @@ export function generateToolSoftwareApplicationJsonLd(
   const activeReviews = customReviews && customReviews.length > 0 ? customReviews : getInitialReviewsForTool(tool);
   const agg = computeToolAggregateRating(tool, activeReviews, extraQuickRatings || []);
 
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    '@id': `${canonicalUrl}#software-app`,
-    name: `${tool.name} – PDFLove (www.pdflove.store)`,
-    alternateName: [
-      tool.name,
-      `${tool.name} Online Free`,
-      `${tool.name} PDFLove`,
-      ...tool.aliases.slice(0, 4),
-    ],
-    url: canonicalUrl,
-    applicationCategory: 'UtilitiesApplication, BusinessApplication',
-    applicationSubCategory: `${tool.category} (${tool.filterTag})`,
-    operatingSystem: 'All (Android Phone, iPhone, iPad, Windows PC, macOS, Linux, ChromeOS)',
-    browserRequirements: 'Requires HTML5 Canvas, WebAssembly / ES2020+ JavaScript browser',
-    softwareVersion: '2026.4.0',
-    isAccessibleForFree: true,
-    description: tool.seoDescription || tool.introDefinition,
-    abstract: tool.aeoDirectAnswer,
-    keywords: [...tool.seoKeywords, 'www.pdflove.store', 'pdflove', 'nexify'].join(', '),
-    screenshot: 'https://www.pdflove.store/og-cover.svg',
-    featureList: [
-      ...tool.geoKeyFacts,
-      `Supported formats: ${tool.supportedFormats.join(', ')}`,
-      '100% Free Forever — Zero Paywalls, Zero Watermarks, Unlimited Files',
-      '100% Client-Side Local Browser Execution on Mobile Phone, Tablet & PC',
-      'Instant Output Download with Privacy Protection',
-    ],
-    author: {
-      '@type': 'Organization',
-      '@id': 'https://www.pdflove.store/#organization',
-      name: 'PDFLove',
-      legalName: 'Nexify',
-      url: 'https://www.pdflove.store/',
-    },
-    publisher: {
-      '@type': 'Organization',
-      '@id': 'https://www.pdflove.store/#organization',
-      name: 'PDFLove (Copyright by Nexify)',
-      url: 'https://www.pdflove.store/',
-    },
-    copyrightHolder: {
-      '@type': 'Organization',
-      name: 'Nexify',
-    },
-    copyrightNotice: 'Copyright by Nexify',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      '@id': `${canonicalUrl}#aggregate-rating`,
-      ratingValue: agg.ratingValue,
-      bestRating: agg.bestRating,
-      worstRating: agg.worstRating,
-      ratingCount: String(agg.ratingCount),
-      reviewCount: String(agg.reviewCount),
-    },
-    review: activeReviews.slice(0, 8).map((rev) => ({
-      '@type': 'Review',
-      '@id': `${canonicalUrl}#review-${rev.id}`,
-      name: rev.title,
-      reviewBody: rev.comment,
-      datePublished: rev.datePublished,
-      author: {
-        '@type': 'Person',
-        name: rev.authorName,
-      },
-      locationCreated: {
-        '@type': 'Place',
-        name: rev.city,
-      },
-      reviewRating: {
-        '@type': 'Rating',
-        ratingValue: String(rev.rating),
-        bestRating: '5',
-        worstRating: '1',
-      },
-    })),
-    offers: {
-      '@type': 'AggregateOffer',
-      '@id': `${canonicalUrl}#aggregate-offer`,
-      lowPrice: '0',
-      highPrice: '0',
-      priceCurrency: 'INR',
-      offerCount: '3',
-      availability: 'https://schema.org/InStock',
-      url: canonicalUrl,
-      seller: {
-        '@type': 'Organization',
-        name: 'PDFLove (www.pdflove.store) — Copyright by Nexify',
-        url: 'https://www.pdflove.store/',
-      },
-      offers: [
-        {
-          '@type': 'Offer',
-          name: `${tool.name} – Free Forever Plan (India INR)`,
-          price: '0',
-          priceCurrency: 'INR',
-          availability: 'https://schema.org/InStock',
-          url: canonicalUrl,
-          areaServed: 'IN',
-        },
-        {
-          '@type': 'Offer',
-          name: `${tool.name} – Free Forever Plan (Global USD)`,
-          price: '0',
-          priceCurrency: 'USD',
-          availability: 'https://schema.org/InStock',
-          url: canonicalUrl,
-          areaServed: 'Worldwide',
-        },
-        {
-          '@type': 'Offer',
-          name: `${tool.name} – Free Forever Plan (Europe EUR)`,
-          price: '0',
-          priceCurrency: 'EUR',
-          availability: 'https://schema.org/InStock',
-          url: canonicalUrl,
-          areaServed: 'EU',
-        },
-      ],
-    },
+  const aggregateRating = {
+    '@type': 'AggregateRating',
+    '@id': `${canonicalUrl}#aggregate-rating`,
+    ratingValue: agg.ratingValue,
+    bestRating: agg.bestRating,
+    worstRating: agg.worstRating,
+    ratingCount: String(agg.ratingCount),
+    reviewCount: String(agg.reviewCount),
   };
+
+  const reviews = activeReviews.slice(0, 8).map((rev) => ({
+    '@type': 'Review',
+    '@id': `${canonicalUrl}#review-${rev.id}`,
+    name: rev.title,
+    reviewBody: rev.comment,
+    datePublished: rev.datePublished,
+    author: {
+      '@type': 'Person',
+      name: rev.authorName,
+    },
+    locationCreated: {
+      '@type': 'Place',
+      name: rev.city,
+    },
+    reviewRating: {
+      '@type': 'Rating',
+      ratingValue: String(rev.rating),
+      bestRating: '5',
+      worstRating: '1',
+    },
+  }));
+
+  return buildStandardToolSoftwareApplicationSchema(tool, {
+    canonicalUrl,
+    aggregateRating,
+    reviews,
+  });
 }
 
 export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
@@ -891,48 +810,16 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
     [tool, toolReviews, quickRatings]
   );
 
-  // Dynamically inject and live-update per-tool SoftwareApplication & AggregateRating JSON-LD in document.head
+  // Standardized automatic head injection for SoftwareApplication, BreadcrumbList, and FAQPage JSON-LD
   useEffect(() => {
-    try {
-      const schemaScriptId = 'tool-software-application-jsonld';
-      let scriptEl = document.getElementById(schemaScriptId) as HTMLScriptElement | null;
-      if (!scriptEl) {
-        scriptEl = document.createElement('script');
-        scriptEl.id = schemaScriptId;
-        scriptEl.type = 'application/ld+json';
-        document.head.appendChild(scriptEl);
-      }
-      scriptEl.textContent = JSON.stringify(toolSoftwareSchema);
-
-      // Also sync the global #dynamic-jsonld SoftwareApplication node in <head> so all schemas match 1:1
-      const globalJsonLd = document.getElementById('dynamic-jsonld') || document.getElementById('schema-jsonld');
-      if (globalJsonLd && globalJsonLd.textContent) {
-        const parsed = JSON.parse(globalJsonLd.textContent);
-        if (parsed && Array.isArray(parsed['@graph'])) {
-          parsed['@graph'] = parsed['@graph'].map((node: Record<string, any>) => {
-            if (node['@type'] === 'SoftwareApplication') {
-              return {
-                ...node,
-                aggregateRating: toolSoftwareSchema.aggregateRating,
-                review: toolSoftwareSchema.review,
-              };
-            }
-            return node;
-          });
-          globalJsonLd.textContent = JSON.stringify(parsed);
-        }
-      }
-    } catch {
-      // ignore DOM manipulation errors
-    }
+    injectStandardToolJsonLdToHead(tool, {
+      aggregateRating: toolSoftwareSchema.aggregateRating as Record<string, unknown>,
+      reviews: toolSoftwareSchema.review as Record<string, unknown>[],
+    });
     return () => {
-      try {
-        document.getElementById('tool-software-application-jsonld')?.remove();
-      } catch {
-        // ignore cleanup errors
-      }
+      clearStandardToolJsonLdFromHead();
     };
-  }, [toolSoftwareSchema]);
+  }, [tool, toolSoftwareSchema]);
 
   const handleQuickStarClick = (starValue: number) => {
     const clamped = Math.min(5, Math.max(1, starValue));
@@ -1043,13 +930,6 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
       <meta itemProp="name" content={`${tool.name} – PDFLove (www.pdflove.store)`} />
       <meta itemProp="applicationCategory" content="UtilitiesApplication" />
       <meta itemProp="operatingSystem" content="All" />
-
-      {/* Dynamic Per-Tool SoftwareApplication JSON-LD Schema (With Live AggregateRating, Reviews & AggregateOffer) */}
-      <script
-        type="application/ld+json"
-        id={`tool-software-jsonld-${tool.slug}`}
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(toolSoftwareSchema) }}
-      />
 
       {/* Semantic BreadcrumbList Navigation (Matches JSON-LD BreadcrumbList 1:1) */}
       <nav
