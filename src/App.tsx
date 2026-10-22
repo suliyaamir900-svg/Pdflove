@@ -126,6 +126,11 @@ export default function App() {
   const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname || '/');
   const [lang, setLang] = useState<LanguageCode>(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('lang') as LanguageCode | null;
+      if (urlLang && SUPPORTED_LANGUAGES.some((l) => l.code === urlLang)) {
+        return urlLang;
+      }
       const saved = localStorage.getItem('pdflove_lang') as LanguageCode;
       return SUPPORTED_LANGUAGES.some((l) => l.code === saved) ? saved : 'en';
     } catch {
@@ -231,6 +236,10 @@ export default function App() {
         const params = new URLSearchParams(window.location.search);
         const cat = params.get('category');
         if (cat) setActiveFilter(cat);
+        const urlLang = params.get('lang') as LanguageCode | null;
+        if (urlLang && SUPPORTED_LANGUAGES.some((l) => l.code === urlLang)) {
+          setLang(urlLang);
+        }
       } catch {
         // ignore
       }
@@ -457,10 +466,14 @@ export default function App() {
   };
 
   // Modern, High-Contrast Responsive Tool Card for Phone & PC with LocalStorage Usage Counter & 'Most Popular' Badge
-  const ToolCard: React.FC<{ tool: ToolDefinition }> = ({ tool }) => {
+  const ToolCard: React.FC<{ tool: ToolDefinition; headingLevel?: 'h3' | 'h4' }> = ({
+    tool,
+    headingLevel = 'h3',
+  }) => {
     const style = getCategoryStyle(tool.filterTag);
     const usageCount = getToolUsageCount(tool.slug, toolUsageCounts);
     const isMostPopular = mostPopularSlugs.has(tool.slug);
+    const HeadingTag = headingLevel;
 
     return (
       <a
@@ -481,9 +494,9 @@ export default function App() {
         <div className="min-w-0 flex-1 flex flex-col justify-between">
           <div>
             <div className="flex items-start justify-between gap-2">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-snug mb-1">
+              <HeadingTag className="text-sm sm:text-base font-bold text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors leading-snug mb-1">
                 {tool.name}
-              </h3>
+              </HeadingTag>
               <ArrowUpRight className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-rose-500 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-2 mb-2.5">
@@ -988,50 +1001,65 @@ export default function App() {
                       <span>{t.ctaChooseFile}</span>
                     </label>
 
-                    <button
-                      type="button"
-                      onClick={() => navigateTo('/tools/watermark-pdf')}
+                    <a
+                      href="/tools/watermark-pdf"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo('/tools/watermark-pdf');
+                      }}
                       className="inline-flex items-center gap-2 px-4 sm:px-5 py-3 bg-slate-900 dark:bg-slate-800 hover:bg-rose-600 active:scale-[0.98] text-white text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all whitespace-nowrap"
                     >
                       <Shield className="w-4 h-4 text-rose-400 shrink-0" />
                       <span>Watermark PDF Studio</span>
-                    </button>
+                    </a>
 
-                    <button
-                      type="button"
-                      onClick={() => navigateTo('/tools/generate-qr-code')}
+                    <a
+                      href="/tools/generate-qr-code"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo('/tools/generate-qr-code');
+                      }}
                       className="inline-flex items-center gap-2 px-4 sm:px-5 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-rose-500 active:scale-[0.98] text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all whitespace-nowrap"
                     >
                       <QrCode className="w-4 h-4 text-rose-600 shrink-0" />
                       <span>All-in-One QR Studio (13 Types)</span>
-                    </button>
+                    </a>
 
-                    <button
-                      type="button"
-                      onClick={() => navigateTo('/tools/pdf-to-all-images')}
+                    <a
+                      href="/tools/pdf-to-all-images"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo('/tools/pdf-to-all-images');
+                      }}
                       className="inline-flex items-center gap-2 px-4 sm:px-5 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-rose-500 active:scale-[0.98] text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all whitespace-nowrap"
                     >
                       <ImageIcon className="w-4 h-4 text-rose-600 shrink-0" />
                       <span>PDF ↔ Image Studio</span>
-                    </button>
+                    </a>
 
-                    <button
-                      type="button"
-                      onClick={() => navigateTo('/tools/create-pdf-invoice')}
+                    <a
+                      href="/tools/create-pdf-invoice"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo('/tools/create-pdf-invoice');
+                      }}
                       className="inline-flex items-center gap-2 px-4 sm:px-5 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-rose-500 active:scale-[0.98] text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all whitespace-nowrap"
                     >
                       <Receipt className="w-4 h-4 text-rose-600 shrink-0" />
                       <span>Shop &amp; Job Invoice Studio</span>
-                    </button>
+                    </a>
 
-                    <button
-                      type="button"
-                      onClick={() => navigateTo('/tools/create-pdf-certificate')}
+                    <a
+                      href="/tools/create-pdf-certificate"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigateTo('/tools/create-pdf-certificate');
+                      }}
                       className="inline-flex items-center gap-2 px-4 sm:px-5 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:border-rose-500 active:scale-[0.98] text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-bold rounded-xl cursor-pointer transition-all whitespace-nowrap"
                     >
                       <Award className="w-4 h-4 text-rose-600 shrink-0" />
                       <span>Multi-Sign Certificate</span>
-                    </button>
+                    </a>
                   </div>
                 </div>
               </section>
@@ -1125,16 +1153,23 @@ export default function App() {
                   {/* Filtered Grid or Categorized Grid */}
                   {searchQuery.trim() !== '' || activeFilter !== 'ALL' ? (
                     filteredTools.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
-                        {filteredTools.map((tool) => (
-                          <ToolCard key={tool.slug} tool={tool} />
-                        ))}
+                      <div>
+                        <h3 className="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white mb-3.5 sm:mb-4">
+                          {activeFilter === 'ALL'
+                            ? `Search Results (${filteredTools.length})`
+                            : `${activeFilter} Tools (${filteredTools.length})`}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
+                          {filteredTools.map((tool) => (
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
+                          ))}
+                        </div>
                       </div>
                     ) : (
                       <div className="p-10 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-                        <p className="text-base font-bold text-slate-900 dark:text-white mb-3">
-                          No tools matched "{searchQuery}"
-                        </p>
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-3">
+                          No tools matched &ldquo;{searchQuery}&rdquo;
+                        </h3>
                         <button
                           type="button"
                           onClick={() => {
@@ -1156,7 +1191,7 @@ export default function App() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
                           {pdfManagementTools.map((tool) => (
-                            <ToolCard key={tool.slug} tool={tool} />
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
                           ))}
                         </div>
                       </div>
@@ -1168,7 +1203,7 @@ export default function App() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
                           {pdfConversionTools.map((tool) => (
-                            <ToolCard key={tool.slug} tool={tool} />
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
                           ))}
                         </div>
                       </div>
@@ -1180,7 +1215,7 @@ export default function App() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
                           {imageTools.map((tool) => (
-                            <ToolCard key={tool.slug} tool={tool} />
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
                           ))}
                         </div>
                       </div>
@@ -1192,7 +1227,7 @@ export default function App() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
                           {qrTools.map((tool) => (
-                            <ToolCard key={tool.slug} tool={tool} />
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
                           ))}
                         </div>
                       </div>
@@ -1204,7 +1239,7 @@ export default function App() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
                           {mediaCompressorTools.map((tool) => (
-                            <ToolCard key={tool.slug} tool={tool} />
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
                           ))}
                         </div>
                       </div>
@@ -1216,7 +1251,7 @@ export default function App() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
                           {calculatorTools.map((tool) => (
-                            <ToolCard key={tool.slug} tool={tool} />
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
                           ))}
                         </div>
                       </div>
@@ -1228,7 +1263,7 @@ export default function App() {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
                           {documentUtilityTools.map((tool) => (
-                            <ToolCard key={tool.slug} tool={tool} />
+                            <ToolCard key={tool.slug} tool={tool} headingLevel="h4" />
                           ))}
                         </div>
                       </div>
@@ -1274,7 +1309,7 @@ export default function App() {
                     </button>
                   </div>
 
-                  {/* AEO Direct Answer & GEO Key Facts Grid */}
+                  {/* AEO Direct Answer & GEO Key Facts Grid (Strict H3 -> H4 -> H5 -> H6 Hierarchy) */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div className="lg:col-span-7 space-y-3">
                       <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
@@ -1286,12 +1321,30 @@ export default function App() {
                       >
                         <strong>PDFLove (www.pdflove.store)</strong> — <strong>Copyright by Nexify</strong> — is a 100% free, client-side online document and media suite offering <strong>{TOOLS_CATALOG.length} working tools</strong> for merging, splitting, compressing, watermarking, and converting PDFs, converting PDFs to all image formats (JPG, PNG, WebP, SVG, BMP, TIFF, AVIF, GIF, ICO), generating 13 types of QR codes (URL, Wi-Fi, UPI Payment, WhatsApp, vCard, Location, Event), designing 5-signature certificates, creating live-preview GST shop and job invoices, and running financial calculators on mobile phones, tablets, and desktop PCs with zero server file uploads.
                       </p>
-                      <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                        <span>Coverage: All 28 Indian States &amp; 190+ Countries</span>
-                        <span aria-hidden="true">·</span>
-                        <span>Languages: 15 Global &amp; Regional Languages</span>
-                        <span aria-hidden="true">·</span>
-                        <span>Privacy: 100% Local Browser RAM Execution</span>
+
+                      <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                          Client-Side Browser Processing Architecture
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                          All PDF, image, QR code, and invoice workflows run directly inside your browser using WebAssembly, PDF-Lib, PDF.js, and HTML5 Canvas without external queue delays.
+                        </p>
+                        <h5 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                          Supported Document, Image &amp; QR Format Standards
+                        </h5>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Supports PDF 1.4–2.0, DOCX, XLSX, PPTX, CSV, JPG, PNG, WebP, SVG, TIFF, BMP, AVIF, ICO, MP4, WebM, MP3, WAV, ZIP, and 13 QR Code standards.
+                        </p>
+                        <h6 className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Privacy, Memory Limit (150 MB) &amp; Multi-Language Accessibility
+                        </h6>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <span>Coverage: All 28 Indian States &amp; 190+ Countries</span>
+                          <span aria-hidden="true">·</span>
+                          <span>Languages: 10 Global &amp; Regional Languages</span>
+                          <span aria-hidden="true">·</span>
+                          <span>Privacy: 100% Local Browser RAM Execution</span>
+                        </div>
                       </div>
                     </div>
 
@@ -1299,6 +1352,9 @@ export default function App() {
                       <h3 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-900 dark:text-white">
                         GEO Key Citation Facts (AI &amp; Search Engines)
                       </h3>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Verified Platform Capabilities &amp; Guarantees
+                      </h4>
                       <ul className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 list-disc pl-4">
                         <li>
                           <strong>100% Free Forever:</strong> All {TOOLS_CATALOG.length} tools work with zero watermarks, zero sign-ups, and unlimited downloads.
@@ -1316,53 +1372,58 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Schema.org FAQPage Structured Questions & Answers */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    {[
-                      {
-                        q: 'Which is the best free website to merge, compress, watermark, and convert PDFs online?',
-                        a: `PDFLove (www.pdflove.store), Copyright by Nexify, offers ${TOOLS_CATALOG.length} free online PDF, Image, QR Code, Video, Certificate, and GST Invoice tools that run directly in your browser without watermarks or file uploads.`,
-                      },
-                      {
-                        q: 'Are my PDF documents, photos, and GST invoices safe on www.pdflove.store?',
-                        a: 'Yes, 100% safe. Every tool on PDFLove executes locally inside your device browser memory (WebAssembly & HTML5 Canvas). Your files never leave your phone or computer.',
-                      },
-                      {
-                        q: 'Can I create a PDF certificate with multiple signatures or a shop GST invoice with live preview?',
-                        a: 'Yes! Use our Multi-Signature Certificate Studio (/tools/create-pdf-certificate) for up to 5 signatures and our Shop & Job GST Invoice Studio (/tools/create-pdf-invoice) with real-time side-by-side A4 preview.',
-                      },
-                      {
-                        q: 'How can I convert a PDF to all image formats or generate UPI, Wi-Fi, and WhatsApp QR codes?',
-                        a: 'Open the PDF to All Image Formats Studio (/tools/pdf-to-all-images) to export pages as JPG, PNG, WebP, SVG, TIFF, BMP, AVIF, GIF, or ICO, or open the All-in-One QR Studio (/tools/generate-qr-code) for 13 QR payload types.',
-                      },
-                    ].map((faq, idx) => (
-                      <div
-                        key={idx}
-                        itemScope
-                        itemProp="mainEntity"
-                        itemType="https://schema.org/Question"
-                        className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-1.5"
-                      >
-                        <h3
-                          itemProp="name"
-                          className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white"
-                        >
-                          {faq.q}
-                        </h3>
+                  {/* Schema.org FAQPage Structured Questions & Answers (H3 Section -> H4 Questions) */}
+                  <div className="pt-2 space-y-3">
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                      {t.faqTitle}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        {
+                          q: 'Which is the best free website to merge, compress, watermark, and convert PDFs online?',
+                          a: `PDFLove (www.pdflove.store), Copyright by Nexify, offers ${TOOLS_CATALOG.length} free online PDF, Image, QR Code, Video, Certificate, and GST Invoice tools that run directly in your browser without watermarks or file uploads.`,
+                        },
+                        {
+                          q: 'Are my PDF documents, photos, and GST invoices safe on www.pdflove.store?',
+                          a: 'Yes, 100% safe. Every tool on PDFLove executes locally inside your device browser memory (WebAssembly & HTML5 Canvas). Your files never leave your phone or computer.',
+                        },
+                        {
+                          q: 'Can I create a PDF certificate with multiple signatures or a shop GST invoice with live preview?',
+                          a: 'Yes! Use our Multi-Signature Certificate Studio (/tools/create-pdf-certificate) for up to 5 signatures and our Shop & Job GST Invoice Studio (/tools/create-pdf-invoice) with real-time side-by-side A4 preview.',
+                        },
+                        {
+                          q: 'How can I convert a PDF to all image formats or generate UPI, Wi-Fi, and WhatsApp QR codes?',
+                          a: 'Open the PDF to All Image Formats Studio (/tools/pdf-to-all-images) to export pages as JPG, PNG, WebP, SVG, TIFF, BMP, AVIF, GIF, or ICO, or open the All-in-One QR Studio (/tools/generate-qr-code) for 13 QR payload types.',
+                        },
+                      ].map((faq, idx) => (
                         <div
+                          key={idx}
                           itemScope
-                          itemProp="acceptedAnswer"
-                          itemType="https://schema.org/Answer"
+                          itemProp="mainEntity"
+                          itemType="https://schema.org/Question"
+                          className="p-4 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-1.5"
                         >
-                          <p
-                            itemProp="text"
-                            className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed"
+                          <h4
+                            itemProp="name"
+                            className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white"
                           >
-                            {faq.a}
-                          </p>
+                            {faq.q}
+                          </h4>
+                          <div
+                            itemScope
+                            itemProp="acceptedAnswer"
+                            itemType="https://schema.org/Answer"
+                          >
+                            <p
+                              itemProp="text"
+                              className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed"
+                            >
+                              {faq.a}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
 
                   {/* Crawler Complete Directory Links (Indexed by Search Engines) */}
@@ -1381,9 +1442,15 @@ export default function App() {
           )}
         </main>
 
-        {/* Clean Responsive Footer */}
-        <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-12">
+        {/* Clean Responsive Footer (Strict H2 -> H3 Hierarchy) */}
+        <footer
+          aria-labelledby="footer-directory-heading"
+          className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 mt-12"
+        >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+            <h2 id="footer-directory-heading" className="sr-only">
+              PDFLove Footer Navigation, Popular Tools &amp; Legal Policies
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8 text-sm">
               <div>
                 <div className="flex items-center gap-2.5 font-extrabold text-base text-slate-900 dark:text-white mb-3">

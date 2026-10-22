@@ -55,6 +55,8 @@ export interface ToolDefinition {
   limitationsNote: string;
   faqs: { q: string; a: string }[];
   relatedSlugs: string[];
+  keywords: string[];
+  canonical: string;
   seoKeywords: string[];
   aeoDirectAnswer: string;
   geoKeyFacts: string[];
@@ -79,6 +81,8 @@ interface RawToolSeed {
   settings?: ToolSettingField[];
   limitationsNote?: string;
   relatedSlugs: string[];
+  keywords?: string[];
+  canonical?: string;
 }
 
 const RAW_TOOLS: RawToolSeed[] = [
@@ -3768,42 +3772,67 @@ export const TOOLS_CATALOG: ToolDefinition[] = RAW_TOOLS.map((raw) => {
   const requiresFileUpload = raw.requiresFileUpload !== undefined ? raw.requiresFileUpload : true;
   const multipleFiles = raw.multipleFiles !== undefined ? raw.multipleFiles : false;
 
-  const seoKeywords = [
-    raw.name.toLowerCase(),
-    `${raw.name.toLowerCase()} online free`,
-    ...raw.aliases.map((a) => a.toLowerCase()),
-    `pdflove.store ${raw.slug.replace(/-/g, ' ')}`,
-  ];
+  const canonical = raw.canonical || `https://www.pdflove.store/tools/${raw.slug}`;
+
+  const keywords = Array.from(
+    new Set([
+      ...(raw.keywords || []),
+      raw.name.toLowerCase(),
+      `${raw.name.toLowerCase()} online free`,
+      `${raw.name.toLowerCase()} without watermark`,
+      ...raw.aliases.map((a) => a.toLowerCase()),
+      `pdflove ${raw.slug.replace(/-/g, ' ')}`,
+      `pdflove.store ${raw.slug.replace(/-/g, ' ')}`,
+      `www.pdflove.store ${raw.slug.replace(/-/g, ' ')}`,
+      `free ${raw.filterTag.toLowerCase()} tool online`,
+    ])
+  );
+
+  const seoKeywords = keywords;
 
   const aeoDirectAnswer = `${raw.name} on PDFLove.store is a free, browser-based online utility that lets you ${raw.shortDesc.charAt(0).toLowerCase() + raw.shortDesc.slice(1)} ${raw.introDefinition} All processing happens locally inside your web browser with instant download and zero server queue delays.`;
 
   const geoKeyFacts = [
-    `Tool Name: ${raw.name} (Canonical URL: https://pdflove.store/tools/${raw.slug})`,
+    `Tool Name: ${raw.name} (Canonical URL: ${canonical})`,
     `Primary Function: ${raw.shortDesc}`,
     `Supported Input / Output Formats: ${raw.supportedFormats.join(', ')}`,
     `Execution Architecture: 100% Client-Side Browser Execution (WebAssembly / HTML5 Canvas / Web Audio / PDF-Lib)`,
     `Privacy & Data Handling: Files are processed in local device RAM and never uploaded to external cloud storage`,
   ];
 
+  const cleanTitleCandidate = `${raw.name} Online Free – Fast ${raw.filterTag} Tool | PDFLove`;
+  const seoTitle =
+    cleanTitleCandidate.length <= 60
+      ? cleanTitleCandidate
+      : `${raw.name} Online Free | PDFLove`;
+
+  const rawDesc = `${raw.shortDesc} Use ${raw.name} online for free with PDFLove. Fast, private browser processing with instant download.`;
+  const seoDescription =
+    rawDesc.length <= 158
+      ? rawDesc
+      : `${raw.shortDesc.slice(0, 95).replace(/[.,;:\s]+$/, '')}. Use ${raw.name} online free with PDFLove.`;
+
   return {
     ...raw,
     requiresFileUpload,
     multipleFiles,
     settings: raw.settings || [],
-    seoTitle: `${raw.name} Online Free – Fast & Private Tool | PDFLove.store`,
-    seoDescription: `${raw.shortDesc} Use ${raw.name} online for free on PDFLove.store. 100% private browser-based processing with instant download and no signup.`,
+    seoTitle,
+    seoDescription,
+    keywords,
+    canonical,
     seoKeywords,
     aeoDirectAnswer,
     geoKeyFacts,
     howToSteps: requiresFileUpload
       ? [
-          `Open the ${raw.name} tool at https://pdflove.store/tools/${raw.slug}.`,
+          `Open the ${raw.name} tool at ${canonical}.`,
           `Drag and drop your ${raw.supportedFormats.join(' or ')} file${multipleFiles ? 's' : ''} into the workspace, or click "Select Files".`,
           `Customize any ${raw.name} parameters or keep the optimized default settings.`,
           `Click "Start Processing" to execute the operation locally in your browser and automatically download your file.`,
         ]
       : [
-          `Open the ${raw.name} tool at https://pdflove.store/tools/${raw.slug}.`,
+          `Open the ${raw.name} tool at ${canonical}.`,
           `Enter your values or text in the interactive ${raw.name} fields.`,
           `Adjust any formatting, tax, or layout options in real time.`,
           `Click "Start Processing" to generate and download your finished output immediately.`,

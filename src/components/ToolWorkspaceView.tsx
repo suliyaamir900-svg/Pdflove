@@ -29,6 +29,8 @@ import { ToolDefinition, getToolBySlug, TOOLS_CATALOG } from '../data/toolsCatal
 import { TranslationDictionary } from '../data/translations';
 import type { ProcessingResult } from '../services/documentEngine';
 import {
+  resolveSeoConfigForPath,
+  applyToolMetaTagsToHead,
   injectStandardToolJsonLdToHead,
   clearStandardToolJsonLdFromHead,
   buildStandardToolSoftwareApplicationSchema,
@@ -252,41 +254,52 @@ export function generateToolSoftwareApplicationJsonLd(
   customReviews?: ToolUserReview[],
   extraQuickRatings?: number[]
 ) {
-  const canonicalUrl = `https://www.pdflove.store/tools/${tool.slug}`;
-  const activeReviews = customReviews && customReviews.length > 0 ? customReviews : getInitialReviewsForTool(tool);
-  const agg = computeToolAggregateRating(tool, activeReviews, extraQuickRatings || []);
+  const canonicalUrl = tool.canonical || `https://www.pdflove.store/tools/${tool.slug}`;
+  const submittedReviews = (customReviews || []).filter((r) => r.isUserSubmitted);
+  const quickList = extraQuickRatings || [];
+  const totalRealVotes = submittedReviews.length + quickList.length;
 
-  const aggregateRating = {
-    '@type': 'AggregateRating',
-    '@id': `${canonicalUrl}#aggregate-rating`,
-    ratingValue: agg.ratingValue,
-    bestRating: agg.bestRating,
-    worstRating: agg.worstRating,
-    ratingCount: String(agg.ratingCount),
-    reviewCount: String(agg.reviewCount),
-  };
-
-  const reviews = activeReviews.slice(0, 8).map((rev) => ({
-    '@type': 'Review',
-    '@id': `${canonicalUrl}#review-${rev.id}`,
-    name: rev.title,
-    reviewBody: rev.comment,
-    datePublished: rev.datePublished,
-    author: {
-      '@type': 'Person',
-      name: rev.authorName,
-    },
-    locationCreated: {
-      '@type': 'Place',
-      name: rev.city,
-    },
-    reviewRating: {
-      '@type': 'Rating',
-      ratingValue: String(rev.rating),
+  let aggregateRating: Record<string, unknown> | undefined;
+  if (totalRealVotes > 0) {
+    const sum =
+      submittedReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) +
+      quickList.reduce((acc, q) => acc + (Number(q) || 5), 0);
+    const avg = (sum / totalRealVotes).toFixed(2).replace(/\.?0+$/, '');
+    aggregateRating = {
+      '@type': 'AggregateRating',
+      '@id': `${canonicalUrl}#aggregate-rating`,
+      ratingValue: avg,
       bestRating: '5',
       worstRating: '1',
-    },
-  }));
+      ratingCount: String(totalRealVotes),
+      ...(submittedReviews.length > 0 ? { reviewCount: String(submittedReviews.length) } : {}),
+    };
+  }
+
+  const reviews =
+    submittedReviews.length > 0
+      ? submittedReviews.slice(0, 8).map((rev) => ({
+          '@type': 'Review',
+          '@id': `${canonicalUrl}#review-${rev.id}`,
+          name: rev.title,
+          reviewBody: rev.comment,
+          datePublished: rev.datePublished,
+          author: {
+            '@type': 'Person',
+            name: rev.authorName,
+          },
+          locationCreated: {
+            '@type': 'Place',
+            name: rev.city,
+          },
+          reviewRating: {
+            '@type': 'Rating',
+            ratingValue: String(rev.rating),
+            bestRating: '5',
+            worstRating: '1',
+          },
+        }))
+      : undefined;
 
   return buildStandardToolSoftwareApplicationSchema(tool, {
     canonicalUrl,
@@ -346,6 +359,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
   const secondaryInputRef = useRef<HTMLInputElement>(null);
   const watermarkLogoInputRef = useRef<HTMLInputElement>(null);
   const qrLogoInputRef = useRef<HTMLInputElement>(null);
+  const resultBoxRef = useRef<HTMLDivElement>(null);
 
   const isInvoiceTool = tool.slug === 'create-pdf-invoice' || tool.slug === 'quotation-estimate-maker';
   const isCertificateTool = tool.slug === 'create-pdf-certificate';
@@ -653,6 +667,9 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
       }
       runsInCurrentVisitRef.current += 1;
       triggerBrowserDownload(res.blob, res.filename);
+      setTimeout(() => {
+        resultBoxRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 80);
     } catch (err: any) {
       setErrorMsg(
         err?.message ||
@@ -810,9 +827,11 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
     [tool, toolReviews, quickRatings]
   );
 
-  // Standardized automatic head injection for SoftwareApplication, BreadcrumbList, and FAQPage JSON-LD
+  // Standardized automatic head injection for tool.keywords, tool.canonical, SoftwareApplication, BreadcrumbList, and FAQPage JSON-LD
   useEffect(() => {
+    applyToolMetaTagsToHead(tool, tool.canonical);
     injectStandardToolJsonLdToHead(tool, {
+      canonicalUrl: tool.canonical,
       aggregateRating: toolSoftwareSchema.aggregateRating as Record<string, unknown>,
       reviews: toolSoftwareSchema.review as Record<string, unknown>[],
     });
@@ -996,7 +1015,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
             className="inline-flex items-center min-w-0"
             aria-current="page"
           >
-            <link itemProp="item" href={`https://www.pdflove.store/tools/${tool.slug}`} />
+            <link itemProp="item" href={tool.canonical} />
             <span itemProp="name" className="text-slate-900 dark:text-slate-200 font-semibold truncate">
               {tool.name}
             </span>
@@ -1094,6 +1113,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
 
       {/* Main Functional Tool Workspace */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-8 mb-10 shadow-xs">
+        <h2 className="sr-only">{tool.name} Interactive Workspace &amp; Processing Controls</h2>
         {/* File Upload Box */}
         {tool.requiresFileUpload && (
           <div className="mb-6">
@@ -1155,25 +1175,36 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
               </div>
             </div>
 
-            {/* Selected Files List */}
+            {/* Selected Files List + Instant Top Process Button */}
             {files.length > 0 && (
-              <div className="mt-4 border border-slate-200 dark:border-slate-800 rounded-xl divide-y divide-slate-200 dark:divide-slate-800 overflow-hidden">
-                <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 text-xs font-medium text-slate-600 dark:text-slate-300">
+              <div className="mt-4 border border-rose-200 dark:border-rose-900/60 rounded-xl divide-y divide-slate-200 dark:divide-slate-800 overflow-hidden shadow-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2.5 bg-rose-50/70 dark:bg-slate-800/80 text-xs font-medium text-slate-700 dark:text-slate-200">
                   <span>
                     {files.length} file{files.length > 1 ? 's' : ''} ready ({t.inputSizeLabel}:{' '}
                     <strong className="font-mono tabular-nums">{formatBytes(totalInputBytes)}</strong>)
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFiles([]);
-                      setResult(null);
-                    }}
-                    className="inline-flex items-center gap-1 text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    {t.clearFilesBtn}
-                  </button>
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      disabled={isProcessing}
+                      onClick={() => void runProcessingWithFiles(files)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 active:scale-[0.98] disabled:bg-slate-400 text-white font-extrabold rounded-lg shadow-xs cursor-pointer transition-all"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>{isProcessing ? t.processingState : `${t.processBtn} Now`}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFiles([]);
+                        setResult(null);
+                      }}
+                      className="inline-flex items-center gap-1 text-rose-600 hover:text-rose-700 font-semibold cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      {t.clearFilesBtn}
+                    </button>
+                  </div>
                 </div>
                 {files.map((file, idx) => (
                   <div key={`${file.name}-${idx}`} className="flex items-center justify-between px-3 sm:px-4 py-2.5 text-xs sm:text-sm bg-white dark:bg-slate-900">
@@ -1223,7 +1254,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
                 <Award className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>Certificate Live Studio &amp; Multi-Signature Builder</span>
+                <h3>Certificate Live Studio &amp; Multi-Signature Builder</h3>
               </div>
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                 {[
@@ -1304,9 +1335,9 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
                 >
                   {settings.orgName || 'National Institute of Technology & Management'}
                 </p>
-                <h3 className="text-lg sm:text-3xl font-extrabold tracking-tight text-slate-900 font-serif">
+                <div className="text-lg sm:text-3xl font-extrabold tracking-tight text-slate-900 font-serif">
                   {settings.certHeader || 'CERTIFICATE OF EXCELLENCE'}
-                </h3>
+                </div>
                 <p className="text-xs sm:text-sm italic text-slate-500">This is proudly presented to</p>
                 <div
                   className={`text-xl sm:text-4xl font-bold font-serif py-1 border-b border-slate-300 max-w-md mx-auto break-words ${
@@ -1611,7 +1642,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
                 <Receipt className="w-5 h-5 text-rose-600 shrink-0" />
-                <span>Shop, Job Work &amp; Multi-Product GST Invoice Studio (दुकान और जॉब बिल मेकर)</span>
+                <h3>Shop, Job Work &amp; Multi-Product GST Invoice Studio (दुकान और जॉब बिल मेकर)</h3>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -2350,7 +2381,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
                 <Subtitles className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>Timed Video Subtitle Cues Editor</span>
+                <h3>Timed Video Subtitle Cues Editor</h3>
               </div>
               <button
                 type="button"
@@ -2444,7 +2475,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
               <div>
                 <div className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
                   <Sparkles className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>Watermark PDF Studio — Text Stamp &amp; Custom Image Logo</span>
+                  <h3>Watermark PDF Studio — Text Stamp &amp; Custom Image Logo</h3>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Add custom text watermarks, transparent PNG/JPG company logos, or both across all PDF pages using 100% client-side pdf-lib processing.
@@ -2962,7 +2993,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
               <div>
                 <div className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
                   <Sparkles className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>All-in-One Multi-Type QR Code Studio (13 QR Types + Custom Logo + PDF Stamp)</span>
+                  <h3>All-in-One Multi-Type QR Code Studio (13 QR Types + Custom Logo + PDF Stamp)</h3>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Switch between any QR format below, customize colors &amp; center logo, and export as PNG, JPG, WebP, A4 PDF Poster, or stamp directly onto a PDF.
@@ -3183,7 +3214,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={String(settings.email ?? 'bhoraniyaabdullah37@gmail.com')}
+                      value={String(settings.email ?? 'contact@pdflove.store')}
                       onChange={(e) => setSettings({ ...settings, email: e.target.value })}
                       className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg"
                     />
@@ -3275,7 +3306,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={String(settings.emailTo ?? 'bhoraniyaabdullah37@gmail.com')}
+                      value={String(settings.emailTo ?? 'contact@pdflove.store')}
                       onChange={(e) => setSettings({ ...settings, emailTo: e.target.value })}
                       className="w-full px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg"
                     />
@@ -3606,7 +3637,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
                 <Sparkles className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>All-in-One PDF to Image Studio — Format, DPI &amp; Color Filter</span>
+                <h3>All-in-One PDF to Image Studio — Format, DPI &amp; Color Filter</h3>
               </div>
               <span className="text-[11px] text-emerald-700 dark:text-emerald-300 font-semibold">
                 Includes Per-Page Image Gallery + 1-Click ZIP Bundle
@@ -3712,7 +3743,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
           <div className="mb-6 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white mb-4">
               <Sliders className="w-4 h-4 text-rose-600 shrink-0" />
-              <h2>{t.settingsLabel}</h2>
+              <h3>{t.settingsLabel}</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {tool.settings.map((field) => (
@@ -3857,6 +3888,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
         {/* Output / Download Result Box */}
         {result && downloadUrl && (
           <div
+            ref={resultBoxRef}
             role="region"
             aria-label="Processed Output"
             className="mt-6 p-4 sm:p-6 bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/60 rounded-xl"
@@ -4058,17 +4090,36 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
               </ul>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className="text-slate-500 dark:text-slate-400">
-                Need custom help with {tool.name}?
-              </span>
-              <button
-                type="button"
-                onClick={() => onNavigate('/contact')}
-                className="text-rose-600 dark:text-rose-400 font-extrabold hover:underline cursor-pointer"
-              >
-                Send Support Query →
-              </button>
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                Browser Security &amp; Execution Architecture
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-600 dark:text-slate-400">
+                <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <h4 className="font-bold text-slate-900 dark:text-white">Local Memory</h4>
+                  <p>Zero server upload</p>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <h5 className="font-bold text-slate-900 dark:text-white">Cross-Device</h5>
+                  <p>Android, iOS &amp; PC</p>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800">
+                  <h6 className="font-bold text-slate-900 dark:text-white">Free Forever</h6>
+                  <p>No watermark limit</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Need custom help with {tool.name}?
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/contact')}
+                  className="text-rose-600 dark:text-rose-400 font-extrabold hover:underline cursor-pointer"
+                >
+                  Send Support Query →
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -4231,9 +4282,9 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
             <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-xs font-extrabold text-slate-900 dark:text-white">
+                  <h3 className="text-xs font-extrabold text-slate-900 dark:text-white">
                     Quick 1-Click Tool Rating:
-                  </p>
+                  </h3>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     Tap a star to rate {tool.name} instantly
                   </p>
@@ -4477,6 +4528,7 @@ export const ToolWorkspaceView: React.FC<ToolWorkspaceViewProps> = ({
         </div>
 
         {/* User Review Cards List with Schema.org Review Microdata */}
+        <h3 className="sr-only">Verified Community Reviews for {tool.name}</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {filteredAndSortedReviews.map((rev) => {
             const hasVoted = votedReviewIds.includes(rev.id);

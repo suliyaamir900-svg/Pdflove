@@ -77,8 +77,9 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationDictionary> = {
     navHowItWorks: 'How It Works',
     navFaq: 'FAQ',
     navSeoPackage: 'SEO & Single-File Export',
-    heroTitle: 'All Your PDF & Image Tools in One Place',
-    heroSubtitle: 'Merge, split, compress, convert and manage your documents with simple online tools.',
+    heroTitle: 'Free Online PDF, Image, QR & Invoice Tools — PDFLove',
+    heroSubtitle:
+      'Merge, split, compress, watermark, and convert PDF files, edit images, generate QR codes, design certificates, and create GST invoices online for free with PDFLove.',
     ctaExploreTools: 'Explore All Tools',
     ctaChooseFile: 'Choose a File',
     searchPlaceholder: 'Search 160+ tools (e.g., Merge PDF, JPG to PDF, Compress, Invoice, QR)...',

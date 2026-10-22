@@ -240,27 +240,45 @@ export const InfoAndSeoPages: React.FC<InfoPageProps> = ({ pagePath, onNavigate 
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-4">
           Terms of Service &amp; Disclaimer — PDFLove (www.pdflove.store)
         </h1>
-        <div className="space-y-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-8 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-          <div className="flex items-start gap-2.5">
-            <FileCheck2 className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+        <div className="space-y-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-8 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div className="space-y-2">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
+              1. 100% Free Browser-Based Access
+            </h2>
+            <div className="flex items-start gap-2.5">
+              <FileCheck2 className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <p>
+                <strong>100% Free Access:</strong> All {TOOLS_CATALOG.length}+ online PDF, Image, QR Code, Video, Multi-Signature Certificate, Watermark PDF, Shop &amp; Job Invoice, and Calculator utilities on <strong>PDFLove</strong> (<strong>www.pdflove.store</strong>) are provided free of charge for personal, academic, and commercial use.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
+              2. User Responsibility &amp; Data Verification
+            </h2>
             <p>
-              <strong>100% Free Access:</strong> All {TOOLS_CATALOG.length}+ online PDF, Image, QR Code, Video, Multi-Signature Certificate, Watermark PDF, Shop &amp; Job Invoice, and Calculator utilities on <strong>PDFLove</strong> (<strong>www.pdflove.store</strong>) are provided free of charge for personal, academic, and commercial use.
+              <strong>User Responsibility:</strong> Since all document editing, certificate generation, and invoice creation happen directly in your browser, you are responsible for verifying the accuracy of data entered into certificates, tax invoices, and calculators before official submission.
             </p>
           </div>
-          <p>
-            <strong>User Responsibility:</strong> Since all document editing, certificate generation, and invoice creation happen directly in your browser, you are responsible for verifying the accuracy of data entered into certificates, tax invoices, and calculators before official submission.
-          </p>
-          <p>
-            <strong>Copyright &amp; Official Contact:</strong> © {new Date().getFullYear()} <strong>PDFLove (www.pdflove.store)</strong> — <strong>Copyright by Nexify</strong>. All rights reserved. For official support or legal inquiries, please use our{' '}
-            <button
-              type="button"
-              onClick={() => onNavigate('/contact')}
-              className="text-rose-600 dark:text-rose-400 font-bold underline cursor-pointer"
-            >
-              Contact &amp; Support Desk
-            </button>
-            .
-          </p>
+          <div className="space-y-2">
+            <h2 className="text-base font-extrabold text-slate-900 dark:text-white">
+              3. Copyright Ownership &amp; Official Contact
+            </h2>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              PDFLove Platform Attribution
+            </h3>
+            <p>
+              <strong>Copyright &amp; Official Contact:</strong> © {new Date().getFullYear()} <strong>PDFLove (www.pdflove.store)</strong> — <strong>Copyright by Nexify</strong>. All rights reserved. For official support or legal inquiries, please use our{' '}
+              <button
+                type="button"
+                onClick={() => onNavigate('/contact')}
+                className="text-rose-600 dark:text-rose-400 font-bold underline cursor-pointer"
+              >
+                Contact &amp; Support Desk
+              </button>
+              .
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -284,13 +302,13 @@ export const InfoAndSeoPages: React.FC<InfoPageProps> = ({ pagePath, onNavigate 
                 <Mail className="w-5 h-5" />
               </div>
               <div>
-                <p className="font-bold text-slate-900 dark:text-white">
+                <h2 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                   PDFLove (www.pdflove.store) — Copyright by Nexify • Official Support &amp; Ad Desk
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 inline-flex items-center gap-1 mt-0.5">
+                </h2>
+                <h3 className="text-xs text-slate-500 dark:text-slate-400 inline-flex items-center gap-1 mt-0.5 font-normal">
                   <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   <span>Encrypted Direct Admin Routing (Private Inbox Protected)</span>
-                </p>
+                </h3>
               </div>
             </div>
             <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-900/60 self-start sm:self-center shrink-0">

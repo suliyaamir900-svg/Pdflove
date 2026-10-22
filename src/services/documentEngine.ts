@@ -939,7 +939,14 @@ async function executeToolOperationInternal(
       const wmMode = String(settings.watermarkMode || (secondaryFile || settings.watermarkImageDataUrl ? 'both' : 'text'));
       const text = sanitizeWinAnsi(String(settings.watermarkText || 'CONFIDENTIAL'));
       const subtext = sanitizeWinAnsi(String(settings.watermarkSubtext || ''));
-      const opacity = Math.max(0.05, Math.min(1, Number(settings.opacity) || 0.25));
+      const rawOpacity = Number(settings.opacity);
+      const normalizedOpacity =
+        !Number.isNaN(rawOpacity) && rawOpacity > 0
+          ? rawOpacity > 1
+            ? rawOpacity / 100
+            : rawOpacity
+          : 0.28;
+      const opacity = Math.max(0.05, Math.min(1, normalizedOpacity));
       const fontSize = Math.max(12, Math.min(120, Number(settings.fontSize) || 48));
       const imageWidthPt = Math.max(40, Math.min(450, Number(settings.imageWidthPt) || 160));
       const placement = String(settings.placement || 'diagonal');
@@ -947,7 +954,7 @@ async function executeToolOperationInternal(
         settings.rotationAngle !== undefined && settings.rotationAngle !== ''
           ? Number(settings.rotationAngle)
           : placement === 'diagonal' || placement === 'tiled'
-          ? 45
+          ? 38
           : 0;
 
       const colorKey = String(settings.watermarkColor || 'crimson');
@@ -955,9 +962,11 @@ async function executeToolOperationInternal(
         crimson: rgb(0.85, 0.11, 0.26),
         slate: rgb(0.28, 0.33, 0.41),
         black: rgb(0.06, 0.09, 0.16),
-        navy: rgb(0.11, 0.3, 0.85),
-        emerald: rgb(0.02, 0.47, 0.34),
-        gold: rgb(0.71, 0.33, 0.04),
+        navy: rgb(0.09, 0.22, 0.48),
+        emerald: rgb(0.05, 0.52, 0.28),
+        gold: rgb(0.74, 0.42, 0.03),
+        amber: rgb(0.74, 0.42, 0.03),
+        purple: rgb(0.43, 0.15, 0.72),
       };
       const wmRgb = colorMap[colorKey] || colorMap.crimson;
 
@@ -1156,7 +1165,8 @@ async function executeToolOperationInternal(
 
       let previewUrl: string | undefined;
       try {
-        const { blobs } = await renderPdfPagesToImages(outBytes.buffer.slice(0), 'image/png', 1.4, 0.9);
+        const copyBuf = new Uint8Array(outBytes).buffer;
+        const { blobs } = await renderPdfPagesToImages(copyBuf, 'image/png', 1.4, 0.9);
         if (blobs[0]) {
           previewUrl = URL.createObjectURL(blobs[0]);
         }
@@ -1543,7 +1553,9 @@ async function executeToolOperationInternal(
       let fmt: 'image/jpeg' | 'image/png' | 'image/webp' = 'image/png';
       let ext = 'png';
 
-      const requestedFmt = String(settings.imageFormat || settings.exportFormat || '').toLowerCase();
+      const requestedFmt = String(
+        settings.outputImageFormat || settings.imageFormat || settings.exportFormat || ''
+      ).toLowerCase();
       if (requestedFmt === 'jpeg' || requestedFmt === 'jpg') {
         fmt = 'image/jpeg';
         ext = 'jpg';
@@ -1562,8 +1574,15 @@ async function executeToolOperationInternal(
       }
 
       const scale = Math.max(1, Math.min(3.5, Number(settings.dpiScale || settings.scale) || 2));
-      const quality = Math.max(0.4, Math.min(1, Number(settings.quality) || 0.92));
-      const colorFilter = String(settings.colorFilter || 'color');
+      const rawQuality = Number(settings.quality);
+      const normalizedQuality =
+        !Number.isNaN(rawQuality) && rawQuality > 0
+          ? rawQuality > 1
+            ? rawQuality / 100
+            : rawQuality
+          : 0.92;
+      const quality = Math.max(0.4, Math.min(1, normalizedQuality));
+      const colorFilter = String(settings.colorMode || settings.colorFilter || 'color');
       const { blobs: allBlobs } = await renderPdfPagesToImages(bytes, fmt, scale, quality, undefined, onProgress);
 
       // Filter by pageRange if specified
@@ -2348,7 +2367,8 @@ ${htmlPages}
 
       if (tool.slug === 'add-watermark-image') {
         const wmText = String(settings.watermarkText || '© PDFLove.store');
-        const op = Number(settings.opacity) || 0.35;
+        const rawOp = Number(settings.opacity) || 0.35;
+        const op = Math.max(0.05, Math.min(1, rawOp > 1 ? rawOp / 100 : rawOp));
         ctx.save();
         ctx.globalAlpha = op;
         ctx.fillStyle = '#ffffff';
@@ -3312,16 +3332,16 @@ ${htmlPages}
       let defaultColor = '#0f172a';
 
       if (qrType === 'wifi') {
-        const ssid = String(settings.ssid || 'Home_Fiber_5G').trim();
-        const pass = String(settings.password || '');
-        const enc = String(settings.encryption || 'WPA');
+        const ssid = String(settings.ssid || settings.wifiSsid || 'Office_5G_WiFi').trim();
+        const pass = String(settings.wifiPassword ?? settings.password ?? 'Welcome@2026');
+        const enc = String(settings.encryption || settings.wifiEncryption || 'WPA');
         payload = `WIFI:T:${enc};S:${ssid};P:${pass};;`;
         if (!topLabel) topLabel = `WI-FI: ${ssid}`;
         if (!subLabel) subLabel = enc === 'nopass' ? 'Scan to Connect (Open Wi-Fi)' : `Password: ${pass} (${enc})`;
         defaultColor = '#0284c7';
       } else if (qrType === 'upi') {
         const upiId = String(settings.upiId || 'merchant@upi').trim();
-        const payee = String(settings.payeeName || 'PDFLove Digital Store').trim();
+        const payee = String(settings.payeeName || 'PDFLove Store Official').trim();
         const amt = Number(settings.amount) || 0;
         const note = String(settings.note || 'Order Payment').trim();
         payload = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payee)}${
@@ -3331,10 +3351,10 @@ ${htmlPages}
         if (!subLabel) subLabel = `UPI: ${upiId}${amt > 0 ? ` · Pay ₹${amt}` : ' · GPay / PhonePe / Paytm'}`;
         defaultColor = '#312e81';
       } else if (qrType === 'vcard') {
-        const fn = String(settings.fullName || 'Rahul Verma').trim();
-        const tel = String(settings.phone || '+91 9876543210').trim();
-        const em = String(settings.email || 'bhoraniyaabdullah37@gmail.com').trim();
-        const org = String(settings.organization || 'PDFLove Enterprises').trim();
+        const fn = String(settings.fullName || settings.vcardName || 'Rajesh Sharma').trim();
+        const tel = String(settings.phone || settings.vcardPhone || '+91 98765 43210').trim();
+        const em = String(settings.email || settings.vcardEmail || 'contact@pdflove.store').trim();
+        const org = String(settings.org || settings.organization || settings.vcardOrg || 'PDFLove Enterprises').trim();
         const url = String(settings.website || 'https://www.pdflove.store').trim();
         const role = String(settings.jobTitle || 'Founder & Director').trim();
         payload = [
@@ -3352,93 +3372,121 @@ ${htmlPages}
         if (!subLabel) subLabel = `${org} · ${tel}`;
         defaultColor = '#0f172a';
       } else if (qrType === 'whatsapp') {
-        const phone = String(settings.phone || '919876543210').replace(/[^\d]/g, '');
-        const msg = String(settings.message || 'Hello! I scanned your QR code on PDFLove.store.');
+        const phone = String(settings.waPhone || settings.whatsappPhone || settings.phone || '919876543210').replace(
+          /[^\d]/g,
+          ''
+        );
+        const msg = String(
+          settings.waMessage ||
+            settings.whatsappMessage ||
+            settings.message ||
+            'Hello! I scanned your QR code and want to inquire about your services.'
+        );
         payload = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
         if (!topLabel) topLabel = 'SCAN TO CHAT ON WHATSAPP';
         if (!subLabel) subLabel = `+${phone}`;
         defaultColor = '#047857';
       } else if (qrType === 'email') {
-        const to = String(settings.emailTo || 'bhoraniyaabdullah37@gmail.com').trim();
-        const sub = String(settings.subject || 'Customer Inquiry').trim();
-        const body = String(settings.body || 'Hi Team, please share more details.').trim();
+        const to = String(settings.emailTo || settings.emailAddress || 'contact@pdflove.store').trim();
+        const sub = String(settings.emailSubject || settings.subject || 'Business Inquiry via QR Code').trim();
+        const body = String(settings.emailBody || settings.body || 'Hello Team, please share details.').trim();
         payload = `mailto:${to}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
         if (!topLabel) topLabel = 'SCAN TO SEND EMAIL';
         if (!subLabel) subLabel = to;
         defaultColor = '#be123c';
       } else if (qrType === 'sms') {
-        const phone = String(settings.phone || '+919876543210').trim();
-        const body = String(settings.smsBody || 'CALLBACK REQUEST').trim();
+        const phone = String(settings.smsPhone || settings.phone || '+919876543210').trim();
+        const body = String(settings.smsBody || 'REGISTER ME FOR UPDATES').trim();
         payload = `SMSTO:${phone}:${body}`;
         if (!topLabel) topLabel = 'SCAN TO SEND SMS';
         if (!subLabel) subLabel = phone;
         defaultColor = '#0369a1';
       } else if (qrType === 'phone') {
         const phone = String(settings.phone || '+919876543210').trim();
-        const biz = String(settings.businessName || '24×7 Support Helpline').trim();
+        const biz = String(settings.calleeName || settings.businessName || 'Customer Support Helpline').trim();
         payload = `tel:${phone.replace(/\s+/g, '')}`;
         if (!topLabel) topLabel = biz.toUpperCase();
         if (!subLabel) subLabel = `Scan to Call: ${phone}`;
         defaultColor = '#1d4ed8';
       } else if (qrType === 'location') {
-        const q = String(settings.locationQuery || 'Mumbai, Maharashtra, India').trim();
-        payload = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-        if (!topLabel) topLabel = 'GOOGLE MAPS DIRECTIONS';
-        if (!subLabel) subLabel = q.slice(0, 46);
+        const lat = String(settings.latitude || '').trim();
+        const lng = String(settings.longitude || '').trim();
+        const place = String(settings.placeName || settings.locationQuery || 'Mumbai Flagship Office').trim();
+        const queryStr = lat && lng ? `${lat},${lng}` : place;
+        payload = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryStr)}`;
+        if (!topLabel) topLabel = place ? place.toUpperCase().slice(0, 34) : 'GOOGLE MAPS DIRECTIONS';
+        if (!subLabel) subLabel = lat && lng ? `GPS: ${lat}, ${lng}` : place.slice(0, 46);
         defaultColor = '#b91c1c';
       } else if (qrType === 'event') {
-        const title = String(settings.eventTitle || 'Annual Tech Summit 2026').trim();
-        const loc = String(settings.eventLocation || 'Grand Convention Hall, Mumbai').trim();
-        const dt = String(settings.eventDate || '2026-11-15').replace(/-/g, '');
+        const title = String(settings.eventTitle || 'Annual Tech Summit & Product Launch').trim();
+        const loc = String(settings.eventLocation || 'Jio World Convention Centre, Mumbai').trim();
+        const dtStart = String(settings.startDate || settings.eventDate || '20261215').replace(/-/g, '');
+        const dtEnd = String(settings.endDate || dtStart || '20261216').replace(/-/g, '');
         payload = [
           'BEGIN:VEVENT',
           `SUMMARY:${title}`,
           `LOCATION:${loc}`,
-          `DTSTART:${dt}T090000Z`,
-          `DTEND:${dt}T170000Z`,
+          `DTSTART:${dtStart}T090000Z`,
+          `DTEND:${dtEnd}T180000Z`,
           'END:VEVENT',
         ].join('\n');
         if (!topLabel) topLabel = title.toUpperCase().slice(0, 34);
-        if (!subLabel) subLabel = `${settings.eventDate || '2026-11-15'} · ${loc.slice(0, 32)}`;
+        if (!subLabel) subLabel = `${dtStart} · ${loc.slice(0, 32)}`;
         defaultColor = '#6d28d9';
       } else if (qrType === 'social') {
-        const platform = String(settings.platform || 'instagram').toUpperCase();
-        const rawUrl = String(settings.profileUrl || 'https://instagram.com/pdflove.store').trim();
-        const handle = String(settings.handleLabel || rawUrl).trim();
-        payload = rawUrl.startsWith('http') ? rawUrl : `https://${platform.toLowerCase()}.com/${rawUrl.replace(/^@/, '')}`;
-        if (!topLabel) topLabel = `FOLLOW ON ${platform}`;
-        if (!subLabel) subLabel = handle.slice(0, 44);
+        const platform = String(settings.socialPlatform || settings.platform || 'instagram').toLowerCase();
+        const rawHandle = String(settings.socialHandle || settings.profileUrl || 'pdflove.store').trim();
+        const cleanHandle = rawHandle.replace(/^@/, '');
+        const domainMap: Record<string, string> = {
+          instagram: `https://instagram.com/${cleanHandle}`,
+          youtube: `https://youtube.com/@${cleanHandle}`,
+          linkedin: `https://linkedin.com/in/${cleanHandle}`,
+          telegram: `https://t.me/${cleanHandle}`,
+          facebook: `https://facebook.com/${cleanHandle}`,
+          x: `https://x.com/${cleanHandle}`,
+        };
+        payload = rawHandle.startsWith('http') ? rawHandle : domainMap[platform] || `https://${cleanHandle}`;
+        if (!topLabel) topLabel = `FOLLOW ON ${platform.toUpperCase()}`;
+        if (!subLabel) subLabel = `@${cleanHandle}`.slice(0, 44);
         defaultColor = '#e11d48';
       } else if (qrType === 'pdf-doc') {
-        const docLink = String(settings.qrPayload || 'https://www.pdflove.store/verify/DOC-2026-991').trim();
+        const docTitle = String(
+          settings.docTitle || (primaryFile ? primaryFile.name : 'Official Verified PDF Document')
+        ).trim();
+        const docRef = String(settings.docRefId || 'DOC-2026-9941').trim();
+        const docLink = String(
+          settings.pdfUrl || settings.qrPayload || 'https://www.pdflove.store/documents/official-brochure.pdf'
+        ).trim();
         const fileMeta = primaryFile
           ? ` | File: ${primaryFile.name} (${(primaryFile.size / 1024).toFixed(1)} KB)`
-          : '';
+          : ` | Ref: ${docRef}`;
         payload = `${docLink}${fileMeta}`;
-        if (!topLabel) topLabel = String(settings.qrCaption || 'VERIFIED DOCUMENT QR').toUpperCase();
-        if (!subLabel) subLabel = primaryFile ? primaryFile.name : docLink.slice(0, 45);
+        if (!topLabel) topLabel = docTitle.toUpperCase().slice(0, 34);
+        if (!subLabel) subLabel = `Ref: ${docRef} · ${primaryFile ? primaryFile.name : docLink.slice(0, 32)}`;
         defaultColor = '#0f172a';
       } else if (qrType === 'text') {
-        payload = String(settings.qrTextNote || settings.qrPayload || 'Verified by PDFLove (www.pdflove.store)').trim();
+        payload = String(
+          settings.qrText || settings.qrTextNote || settings.qrPayload || 'Verified by PDFLove.store — Copyright by Nexify'
+        ).trim();
         if (!topLabel) topLabel = 'VERIFIED NOTE / INFO QR';
         if (!subLabel) subLabel = payload.slice(0, 45);
         defaultColor = '#0f172a';
       } else {
-        payload = String(settings.qrPayload || settings.qrUrl || 'https://www.pdflove.store').trim();
+        payload = String(settings.qrText || settings.qrPayload || settings.qrUrl || 'https://www.pdflove.store').trim();
         if (!topLabel) topLabel = String(settings.caption || 'SCAN TO VISIT WEBSITE').toUpperCase();
         if (!subLabel) subLabel = payload.slice(0, 48);
-        defaultColor = String(settings.colorScheme || '#0f172a');
+        defaultColor = String(settings.qrDarkColor || settings.fgColor || settings.colorScheme || '#0f172a');
       }
 
       if (!payload) payload = 'https://www.pdflove.store';
 
-      const darkColor = String(settings.qrDarkColor || settings.colorScheme || defaultColor);
-      const lightColor = String(settings.qrLightColor || '#ffffff');
-      const qrSize = Math.max(240, Math.min(2000, Number(settings.qrSize) || 640));
+      const darkColor = String(settings.qrDarkColor || settings.fgColor || settings.colorScheme || defaultColor);
+      const lightColor = String(settings.qrLightColor || settings.bgColor || '#ffffff');
+      const qrSize = Math.max(240, Math.min(2000, Number(settings.qrSize) || 800));
       const ecLevel = (settings.errorCorrection || 'H') as 'L' | 'M' | 'Q' | 'H';
-      const frameStyle = String(settings.qrFrameStyle || (tool.slug === 'generate-qr-code' ? 'card' : 'card'));
+      const frameStyle = String(settings.qrCardStyle || settings.qrFrameStyle || 'framed');
       const exportFormat = String(
-        settings.qrExportFormat || (settings.outputMode === 'stamp-pdf' ? 'stamp-pdf' : 'png')
+        settings.exportFormat || settings.qrExportFormat || (settings.outputMode === 'stamp-pdf' ? 'stamp-pdf' : 'png')
       );
 
       // Render high-res core QR matrix

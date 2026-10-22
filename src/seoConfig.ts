@@ -203,16 +203,16 @@ export function buildStandardToolSoftwareApplicationSchema(
   tool: ToolDefinition,
   options?: StandardToolSchemaOverrideOptions
 ): Record<string, unknown> {
-  const canonicalUrl = options?.canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
-  const toolGeoKeywords = [...tool.seoKeywords, ...buildToolGeographyKeywords(tool), ...UNIVERSAL_PDF_KEYWORDS];
-  const defaultRatingCount = 1280 + tool.number * 19;
-  const defaultReviewCount = Math.max(120, Math.round(defaultRatingCount * 0.34));
-
-  return {
+  const canonicalUrl = options?.canonicalUrl || tool.canonical || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  const baseKeywords = Array.isArray(tool.keywords) && tool.keywords.length > 0 ? tool.keywords : tool.seoKeywords;
+  const toolGeoKeywords = Array.from(
+    new Set([...baseKeywords, ...buildToolGeographyKeywords(tool), ...UNIVERSAL_PDF_KEYWORDS])
+  );
+  const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     '@id': `${canonicalUrl}#software`,
-    name: `${tool.name} – PDFLove (www.pdflove.store)`,
+    name: `${tool.name} – PDFLove`,
     alternateName: [tool.name, `${tool.name} Online Free`, `${tool.name} PDFLove`, ...tool.aliases.slice(0, 4)],
     url: canonicalUrl,
     applicationCategory: 'UtilitiesApplication, BusinessApplication',
@@ -255,87 +255,31 @@ export function buildStandardToolSoftwareApplicationSchema(
       name: 'Nexify',
     },
     copyrightNotice: 'Copyright by Nexify',
-    aggregateRating: options?.aggregateRating || {
-      '@type': 'AggregateRating',
-      '@id': `${canonicalUrl}#aggregate-rating`,
-      ratingValue: '4.9',
-      bestRating: '5',
-      worstRating: '1',
-      ratingCount: String(defaultRatingCount),
-      reviewCount: String(defaultReviewCount),
-    },
-    review: options?.reviews || [
-      {
-        '@type': 'Review',
-        '@id': `${canonicalUrl}#review-1`,
-        name: `Best free ${tool.name} online — fast & no watermark`,
-        reviewBody: `Used ${tool.name} on PDFLove (www.pdflove.store) on mobile phone and laptop. Instant client-side processing with 100% privacy.`,
-        datePublished: '2026-10-18',
-        author: { '@type': 'Person', name: 'Rahul Sharma' },
-        reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5', worstRating: '1' },
-      },
-      {
-        '@type': 'Review',
-        '@id': `${canonicalUrl}#review-2`,
-        name: `Works smoothly on Android phone and PC`,
-        reviewBody: `${tool.name} by Nexify is 100% free forever with top-notch ${tool.filterTag} output quality.`,
-        datePublished: '2026-10-14',
-        author: { '@type': 'Person', name: 'Priya Patel' },
-        reviewRating: { '@type': 'Rating', ratingValue: '5', bestRating: '5', worstRating: '1' },
-      },
-    ],
     offers: {
-      '@type': 'AggregateOffer',
-      '@id': `${canonicalUrl}#aggregate-offer`,
-      lowPrice: '0',
-      highPrice: '0',
+      '@type': 'Offer',
+      '@id': `${canonicalUrl}#offer`,
+      price: '0',
       priceCurrency: 'INR',
-      offerCount: '3',
       availability: 'https://schema.org/InStock',
       url: canonicalUrl,
-      seller: {
-        '@type': 'Organization',
-        name: 'PDFLove (www.pdflove.store) — Copyright by Nexify',
-        url: `${SEO_SITE_ORIGIN}/`,
-      },
-      offers: [
-        {
-          '@type': 'Offer',
-          name: `${tool.name} – Free Forever Plan (India INR)`,
-          price: '0',
-          priceCurrency: 'INR',
-          availability: 'https://schema.org/InStock',
-          url: canonicalUrl,
-          areaServed: 'IN',
-        },
-        {
-          '@type': 'Offer',
-          name: `${tool.name} – Free Forever Plan (Global USD)`,
-          price: '0',
-          priceCurrency: 'USD',
-          availability: 'https://schema.org/InStock',
-          url: canonicalUrl,
-          areaServed: 'Worldwide',
-        },
-        {
-          '@type': 'Offer',
-          name: `${tool.name} – Free Forever Plan (Europe EUR)`,
-          price: '0',
-          priceCurrency: 'EUR',
-          availability: 'https://schema.org/InStock',
-          url: canonicalUrl,
-          areaServed: 'EU',
-        },
-      ],
     },
   };
+
+  if (options?.aggregateRating) {
+    schema.aggregateRating = options.aggregateRating;
+  }
+  if (options?.reviews && options.reviews.length > 0) {
+    schema.review = options.reviews;
+  }
+
+  return schema;
 }
 
 export function buildStandardToolBreadcrumbSchema(
   tool: ToolDefinition,
   canonicalUrl?: string
 ): Record<string, unknown> {
-  const resolvedUrl = canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  const resolvedUrl = canonicalUrl || tool.canonical || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -368,7 +312,7 @@ export function buildStandardToolFaqPageSchema(
   tool: ToolDefinition,
   canonicalUrl?: string
 ): Record<string, unknown> {
-  const resolvedUrl = canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  const resolvedUrl = canonicalUrl || tool.canonical || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
   const beyondProfile = buildBeyondSeoProfileForTool(tool, `/tools/${tool.slug}`);
   return {
     '@context': 'https://schema.org',
@@ -491,22 +435,24 @@ function buildToolStructuredData(tool: ToolDefinition, canonicalUrl: string) {
       },
       breadcrumbNode,
       faqNode,
-      PDFLAW_LOCAL_BUSINESS_SCHEMA,
     ],
   };
 }
 
-// Pre-computed Individual Per-Page SEO, AEO & Geography configuration map for all 160 tools
+// Pre-computed Individual Per-Page SEO, AEO & Geography configuration map for all tools
 export const TOOL_SEO_CONFIG_MAP: Record<string, PageSeoMeta> = Object.fromEntries(
   TOOLS_CATALOG.map((tool) => {
-    const canonicalUrl = `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
-    const enrichedTitle = `${tool.name} Online Free – PDFLove (www.pdflove.store) | #1 ${tool.filterTag} Tool (Phone & PC)`;
-    const enrichedDesc = `${tool.seoDescription} Use ${tool.name} on PDFLove (www.pdflove.store) for instant, 100% private browser processing across India & Worldwide on Mobile Phone, Tablet & PC.`;
-    const allKeywords = [
-      ...tool.seoKeywords,
-      ...buildToolGeographyKeywords(tool),
-      ...UNIVERSAL_PDF_KEYWORDS,
-    ].join(', ');
+    const canonicalUrl = tool.canonical || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+    const enrichedTitle = tool.seoTitle;
+    const enrichedDesc = tool.seoDescription;
+    const baseKeywords = Array.isArray(tool.keywords) && tool.keywords.length > 0 ? tool.keywords : tool.seoKeywords;
+    const allKeywords = Array.from(
+      new Set([
+        ...baseKeywords,
+        ...buildToolGeographyKeywords(tool),
+        ...UNIVERSAL_PDF_KEYWORDS,
+      ])
+    ).join(', ');
     const geographySummary = `India (Mumbai, Delhi NCR, Bengaluru, Ahmedabad, Surat, Pune, Hyderabad, Chennai, Kolkata, Jaipur, Lucknow, Indore) & Global (US, UK, UAE, CA, AU, SG, DE, FR)`;
     const enrichedGeoFacts = [
       ...tool.geoKeyFacts,
@@ -549,7 +495,6 @@ function buildStaticPageStructuredData(pageType: string, pageTitle: string, page
         legalName: 'Nexify',
         url: `${SEO_SITE_ORIGIN}/`,
       },
-      PDFLAW_LOCAL_BUSINESS_SCHEMA,
       {
         '@type': pageType,
         '@id': `${pageUrl}#webpage`,
@@ -586,20 +531,20 @@ function buildStaticPageStructuredData(pageType: string, pageTitle: string, page
 export const STATIC_ROUTE_SEO_MAP: Record<string, PageSeoMeta> = {
   '/': {
     slug: '',
-    title: 'PDFLove (www.pdflove.store) – #1 All-in-One Online PDF, Image, QR, Certificate, Invoice & Calculator Tools (160+ Free Tools)',
+    title: 'Free Online PDF, Image, QR & Invoice Tools | PDFLove',
     description:
-      'PDFLove (www.pdflove.store) — Copyright by Nexify: Merge, split, compress, and convert PDFs, create multi-signature certificates, generate GST invoices, make QR codes, compress videos, and use 160+ tools on mobile phone, tablet & PC.',
+      'Merge, split, compress, and convert PDF files, images, QR codes, certificates, and GST invoices online for free with PDFLove. Fast, private browser tools.',
     keywords: [...UNIVERSAL_PDF_KEYWORDS, 'pdflove', 'nexify', ...INDIA_AND_GLOBAL_HUBS.map((c) => `pdf tools ${c.toLowerCase()}`)].join(', '),
     canonicalUrl: `${SEO_SITE_ORIGIN}/`,
-    ogTitle: 'PDFLove (www.pdflove.store) – #1 Online PDF, Image, Certificate, QR & Video Tools (160+ Tools by Nexify)',
+    ogTitle: 'Free Online PDF, Image, QR & Invoice Tools | PDFLove',
     ogDescription:
-      'All-in-one browser toolkit on PDFLove (www.pdflove.store) with 160+ working PDF, Image, QR Code, Video Subtitle, Compressor, Multi-Signature Certificate, Invoice, and Calculator tools.',
+      'Merge, split, compress, and convert PDF files, images, QR codes, certificates, and GST invoices online for free with PDFLove. Fast, private browser tools.',
     ogType: 'website',
     robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
     aeoDirectAnswer:
-      'PDFLove (www.pdflove.store), Copyright by Nexify, provides 160+ free online tools for every PDF task—including Merge PDF, Split PDF, Compress PDF, PDF to Word, Word to PDF, JPG to PDF, Multi-Signature Certificate Maker, GST Invoice Builder, QR Code Generator, Video Compressor, and Smart Calculators—working smoothly on mobile phones, tablets, and PC browsers across India and worldwide.',
+      'PDFLove, Copyright by Nexify, provides 160+ free online tools for every PDF task—including Merge PDF, Split PDF, Compress PDF, Watermark PDF, PDF to Word, Word to PDF, JPG to PDF, Multi-Signature Certificate Maker, GST Invoice Builder, QR Code Generator, Video Compressor, and Smart Calculators—working smoothly on mobile phones, tablets, and PC browsers.',
     geoKeyFacts: [
-      'Official Brand & Domain: PDFLove (https://www.pdflove.store) — Copyright by Nexify',
+      'Official Brand: PDFLove — Copyright by Nexify',
       'Total Working Tools: 160+ dedicated client-side PDF, Media & Document utilities',
       'Device Compatibility: 100% Responsive on Mobile Phones (Android/iOS), Tablets, and PC',
       'Geographic Coverage: All India (28 States & 8 UTs) + Global 190+ Countries',
@@ -615,21 +560,20 @@ export const STATIC_ROUTE_SEO_MAP: Record<string, PageSeoMeta> = {
           '@id': `${SEO_SITE_ORIGIN}/#organization`,
           name: 'PDFLove',
           legalName: 'Nexify',
-          alternateName: ['www.pdflove.store', 'PDFLove.store', 'PDFLove by Nexify'],
+          alternateName: ['PDFLove by Nexify', 'PDFLove Online Tools'],
           url: `${SEO_SITE_ORIGIN}/`,
           areaServed: GEOGRAPHY_TARGET_COUNTRIES.map((c) => ({ '@type': 'Country', name: c.name })),
         },
-        PDFLAW_LOCAL_BUSINESS_SCHEMA,
         {
           '@type': 'WebSite',
           '@id': `${SEO_SITE_ORIGIN}/#website`,
           url: `${SEO_SITE_ORIGIN}/`,
           name: 'PDFLove',
-          alternateName: ['www.pdflove.store', 'PDFLove.store', 'PDFLove by Nexify'],
+          alternateName: ['PDFLove by Nexify', 'PDFLove Free Online PDF Tools'],
           copyrightHolder: { '@type': 'Organization', name: 'Nexify' },
           copyrightNotice: 'Copyright by Nexify',
           description:
-            '161+ Online PDF, Image, QR Code, Video Compressor, Subtitle, Multi-Signature Certificate, Watermark PDF, Invoice, and Calculator Tools on PDFLove (www.pdflove.store).',
+            'Merge, split, compress, and convert PDF files, images, QR codes, certificates, and GST invoices online for free with PDFLove.',
           inLanguage: SUPPORTED_LANGUAGES.map((l) => l.code),
           potentialAction: {
             '@type': 'SearchAction',
@@ -641,7 +585,7 @@ export const STATIC_ROUTE_SEO_MAP: Record<string, PageSeoMeta> = {
           '@type': 'WebPage',
           '@id': `${SEO_SITE_ORIGIN}/#webpage`,
           url: `${SEO_SITE_ORIGIN}/`,
-          name: 'PDFLove (www.pdflove.store) – #1 All-in-One Online PDF, Image, QR, Certificate, Invoice & Calculator Tools',
+          name: 'Free Online PDF, Image, QR & Invoice Tools | PDFLove',
           isPartOf: { '@id': `${SEO_SITE_ORIGIN}/#website` },
           about: { '@id': `${SEO_SITE_ORIGIN}/#webapp` },
           breadcrumb: { '@id': `${SEO_SITE_ORIGIN}/#breadcrumb` },
@@ -675,7 +619,7 @@ export const STATIC_ROUTE_SEO_MAP: Record<string, PageSeoMeta> = {
         {
           '@type': 'ItemList',
           '@id': `${SEO_SITE_ORIGIN}/#tools-catalog-list`,
-          name: 'PDFLove (www.pdflove.store) Complete Online Tools Directory',
+          name: 'PDFLove Complete Online Tools Directory',
           numberOfItems: TOOLS_CATALOG.length,
           itemListElement: TOOLS_CATALOG.map((t, idx) => ({
             '@type': 'ListItem',
@@ -688,19 +632,13 @@ export const STATIC_ROUTE_SEO_MAP: Record<string, PageSeoMeta> = {
         {
           '@type': 'SoftwareApplication',
           '@id': `${SEO_SITE_ORIGIN}/#webapp`,
-          name: 'PDFLove (www.pdflove.store) All-in-One PDF & Document Utility Suite',
+          name: 'PDFLove All-in-One PDF & Document Utility Suite',
           url: `${SEO_SITE_ORIGIN}/`,
           applicationCategory: 'BusinessApplication',
           operatingSystem: 'All (Android, iOS, Windows, macOS, Linux)',
           description:
-            'Complete suite of 161+ online PDF, Image, QR Code, Video Subtitle, Compressor, Calculator, Invoice, Watermark PDF, and Multi-Signature Certificate utilities at www.pdflove.store.',
+            'Complete suite of 160+ online PDF, Image, QR Code, Video Compressor, Calculator, GST Invoice, Watermark PDF, and Multi-Signature Certificate utilities.',
           areaServed: 'Worldwide',
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: '4.9',
-            bestRating: '5',
-            ratingCount: '18450',
-          },
           offers: {
             '@type': 'Offer',
             price: '0',
@@ -712,141 +650,144 @@ export const STATIC_ROUTE_SEO_MAP: Record<string, PageSeoMeta> = {
   },
   '/about': {
     slug: 'about',
-    title: 'About PDFLove (www.pdflove.store) – #1 Online PDF, Image, QR & Certificate Suite (By Nexify)',
+    title: 'About PDFLove – Free Online PDF, Image & QR Tools Suite',
     description:
-      'Learn how PDFLove (www.pdflove.store) by Nexify processes PDF documents, images, QR codes, videos, and multi-signature certificates locally in your mobile phone or PC browser.',
-    keywords: 'about www.pdflove.store, pdflove.store pdf tools india, nexify pdf tools, local browser pdf tools',
+      'Learn how PDFLove by Nexify processes PDF documents, images, QR codes, videos, and multi-signature certificates privately inside your web browser.',
+    keywords: 'about pdflove, pdflove pdf tools india, nexify pdf tools, local browser pdf tools',
     canonicalUrl: `${SEO_SITE_ORIGIN}/about`,
-    ogTitle: 'About PDFLove (www.pdflove.store) – 160+ Online PDF & Utility Suite',
-    ogDescription: 'Learn how PDFLove (www.pdflove.store) processes documents and media locally in your browser.',
+    ogTitle: 'About PDFLove – Free Online PDF, Image & QR Tools Suite',
+    ogDescription: 'Learn how PDFLove processes PDF documents, images, QR codes, and certificates locally in your browser.',
     ogType: 'website',
     robots: 'index, follow',
     aeoDirectAnswer:
-      'PDFLove (www.pdflove.store), Copyright by Nexify, is a fast browser-based document, PDF, media, and certificate utility platform designed for mobile phones, tablets, and desktop PCs across India and worldwide.',
+      'PDFLove, Copyright by Nexify, is a fast browser-based document, PDF, media, and certificate utility platform designed for mobile phones, tablets, and desktop PCs.',
     geoKeyFacts: ['160+ browser tools', 'Zero server file retention', 'Works on mobile phone, tablet & PC'],
     geographySummary: 'India & Global Worldwide',
     geoRegionCodes: 'IN, US, GB, AE, CA, AU, SG',
     geoPlacenames: INDIA_AND_GLOBAL_HUBS.join(', '),
     structuredData: buildStaticPageStructuredData(
       'AboutPage',
-      'About PDFLove (www.pdflove.store)',
+      'About PDFLove – Free Online PDF, Image & QR Tools Suite',
       'about',
-      'Learn how PDFLove (www.pdflove.store) by Nexify processes PDF documents, images, QR codes, videos, and multi-signature certificates locally in your browser.'
+      'Learn how PDFLove by Nexify processes PDF documents, images, QR codes, videos, and multi-signature certificates privately inside your web browser.'
     ),
   },
   '/privacy': {
     slug: 'privacy',
-    title: 'Privacy Policy & Local Browser Processing – PDFLove (www.pdflove.store)',
+    title: 'Privacy Policy & Local Browser Processing | PDFLove',
     description:
-      'Transparent disclosure of client-side browser file processing, memory cleanup, and Google AdSense Video & Display Ad privacy safeguards on PDFLove (www.pdflove.store).',
-    keywords: 'privacy policy www.pdflove.store, client side pdf processing, safe pdf tools',
+      'Read the PDFLove Privacy Policy covering 100% client-side browser PDF and image processing, zero server file storage, memory cleanup, and cookie controls.',
+    keywords: 'privacy policy pdflove, client side pdf processing, safe pdf tools',
     canonicalUrl: `${SEO_SITE_ORIGIN}/privacy`,
-    ogTitle: 'Privacy Policy – PDFLove (www.pdflove.store)',
-    ogDescription: 'Client-side browser file processing and privacy safeguards on www.pdflove.store.',
+    ogTitle: 'Privacy Policy & Local Browser Processing | PDFLove',
+    ogDescription: 'Client-side browser file processing and privacy safeguards on PDFLove.',
     ogType: 'website',
     robots: 'index, follow',
     aeoDirectAnswer:
-      'PDFLove (www.pdflove.store) processes all PDFs, photos, videos, and documents directly in your browser RAM without uploading private files to external cloud servers.',
+      'PDFLove processes all PDFs, photos, videos, and documents directly in your browser RAM without uploading private files to external cloud servers.',
     geoKeyFacts: ['Zero cloud upload', 'Instant browser memory cleanup', 'GDPR, DPDP India & CCPA compliant'],
     geographySummary: 'India (DPDP Act Compliant) & Global (GDPR/CCPA Compliant)',
     geoRegionCodes: 'IN, US, GB, EU, AE',
     geoPlacenames: INDIA_AND_GLOBAL_HUBS.join(', '),
     structuredData: buildStaticPageStructuredData(
       'WebPage',
-      'Privacy Policy – PDFLove (www.pdflove.store)',
+      'Privacy Policy & Local Browser Processing | PDFLove',
       'privacy',
-      'Transparent disclosure of client-side browser file processing, memory cleanup, and Google AdSense Video & Display Ad privacy safeguards on PDFLove (www.pdflove.store).'
+      'Read the PDFLove Privacy Policy covering 100% client-side browser PDF and image processing, zero server file storage, memory cleanup, and cookie controls.'
     ),
   },
   '/terms': {
     slug: 'terms',
-    title: 'Terms of Service – PDFLove (www.pdflove.store)',
-    description: 'Terms and conditions for using PDFLove (www.pdflove.store) online PDF, image, and utility tools.',
-    keywords: 'terms of service www.pdflove.store',
+    title: 'Terms of Service – Free Online PDF & Image Tools | PDFLove',
+    description:
+      'Review the Terms of Service for using PDFLove free online PDF, image, QR code, multi-signature certificate, GST invoice, and calculator tools in your browser.',
+    keywords: 'terms of service pdflove, pdf tools terms',
     canonicalUrl: `${SEO_SITE_ORIGIN}/terms`,
-    ogTitle: 'Terms of Service – PDFLove (www.pdflove.store)',
-    ogDescription: 'Terms and conditions for using www.pdflove.store online PDF and image tools.',
+    ogTitle: 'Terms of Service – Free Online PDF & Image Tools | PDFLove',
+    ogDescription: 'Terms and conditions for using PDFLove free online PDF and image tools.',
     ogType: 'website',
     robots: 'index, follow',
-    aeoDirectAnswer: 'PDFLove (www.pdflove.store) provides access to 160+ browser utilities for personal and commercial use.',
+    aeoDirectAnswer: 'PDFLove provides access to 160+ browser utilities for personal and commercial use.',
     geoKeyFacts: ['Personal and commercial use', 'Instant access on Phone & PC'],
     geographySummary: 'India & Global Worldwide',
     geoRegionCodes: 'IN, US, GB, AE',
     geoPlacenames: INDIA_AND_GLOBAL_HUBS.join(', '),
     structuredData: buildStaticPageStructuredData(
       'WebPage',
-      'Terms of Service – PDFLove (www.pdflove.store)',
+      'Terms of Service – Free Online PDF & Image Tools | PDFLove',
       'terms',
-      'Terms and conditions for using PDFLove (www.pdflove.store) online PDF, image, and utility tools.'
+      'Review the Terms of Service for using PDFLove free online PDF, image, QR code, multi-signature certificate, GST invoice, and calculator tools in your browser.'
     ),
   },
   '/contact': {
     slug: 'contact',
-    title: 'Contact Us – PDFLove (www.pdflove.store) Support',
-    description: 'Contact support and advertising administration at PDFLove (www.pdflove.store).',
-    keywords: 'contact www.pdflove.store, pdflove support',
+    title: 'Contact Support & Feedback – Help Desk | PDFLove',
+    description:
+      'Contact the PDFLove support and engineering team for help with online PDF, image, QR code, certificate, or GST invoice tools, bug reports, and feature requests.',
+    keywords: 'contact pdflove, pdflove support',
     canonicalUrl: `${SEO_SITE_ORIGIN}/contact`,
-    ogTitle: 'Contact Us – PDFLove (www.pdflove.store)',
-    ogDescription: 'Contact support and engineering at www.pdflove.store.',
+    ogTitle: 'Contact Support & Feedback – Help Desk | PDFLove',
+    ogDescription: 'Contact the PDFLove support and engineering team for help and feedback.',
     ogType: 'website',
     robots: 'index, follow',
-    aeoDirectAnswer: 'Reach out to PDFLove (www.pdflove.store) support for feedback, feature requests, or advertising inquiries.',
+    aeoDirectAnswer: 'Reach out to PDFLove support for feedback, feature requests, or advertising inquiries.',
     geoKeyFacts: ['Direct support channel', 'Fast response across India & Worldwide'],
     geographySummary: 'India & Global Support Desk',
     geoRegionCodes: 'IN, US, GB, AE',
     geoPlacenames: INDIA_AND_GLOBAL_HUBS.join(', '),
     structuredData: buildStaticPageStructuredData(
       'ContactPage',
-      'Contact PDFLove (www.pdflove.store)',
+      'Contact Support & Feedback – Help Desk | PDFLove',
       'contact',
-      'Contact support and advertising administration at PDFLove (www.pdflove.store).'
+      'Contact the PDFLove support and engineering team for help with online PDF, image, QR code, certificate, or GST invoice tools, bug reports, and feature requests.'
     ),
   },
   '/cookies': {
     slug: 'cookies',
-    title: 'Cookie & Google AdSense Video/Display Policy – PDFLove (www.pdflove.store)',
+    title: 'Cookie Policy & Browser Storage Preferences | PDFLove',
     description:
-      'Cookie Policy and Google AdSense Video, Display, and DoubleClick DART cookie disclosure for PDFLove (www.pdflove.store).',
-    keywords: 'cookie policy www.pdflove.store, google adsense video ads disclosure, doubleclick dart cookie',
+      'Understand how PDFLove uses local browser storage for dark mode, language preferences, tool usage counters, and Google AdSense display and video ad cookies.',
+    keywords: 'cookie policy pdflove, google adsense video ads disclosure, doubleclick dart cookie',
     canonicalUrl: `${SEO_SITE_ORIGIN}/cookies`,
-    ogTitle: 'Cookie & Google AdSense Policy – PDFLove (www.pdflove.store)',
-    ogDescription: 'Cookie Policy and Google AdSense Video & Display disclosure for www.pdflove.store.',
+    ogTitle: 'Cookie Policy & Browser Storage Preferences | PDFLove',
+    ogDescription: 'Cookie Policy and local browser storage disclosure for PDFLove.',
     ogType: 'website',
     robots: 'index, follow',
     aeoDirectAnswer:
-      'PDFLove (www.pdflove.store) uses local storage for theme and language preferences and Google AdSense Video & Display cookies to keep all 160+ tools 100% free.',
+      'PDFLove uses local storage for theme and language preferences and Google AdSense Video & Display cookies to keep all 160+ tools 100% free.',
     geoKeyFacts: ['Google AdSense Video & Display Publisher Policy Compliant', '100% Free Tools Forever'],
     geographySummary: 'India & Global Worldwide',
     geoRegionCodes: 'IN, US, GB, EU, AE',
     geoPlacenames: INDIA_AND_GLOBAL_HUBS.join(', '),
     structuredData: buildStaticPageStructuredData(
       'WebPage',
-      'Cookie Policy – PDFLove (www.pdflove.store)',
+      'Cookie Policy & Browser Storage Preferences | PDFLove',
       'cookies',
-      'Cookie Policy and Google AdSense Video, Display, and DoubleClick DART cookie disclosure for PDFLove (www.pdflove.store).'
+      'Understand how PDFLove uses local browser storage for dark mode, language preferences, tool usage counters, and Google AdSense display and video ad cookies.'
     ),
   },
   '/disclaimer': {
     slug: 'disclaimer',
-    title: 'Disclaimer – PDFLove (www.pdflove.store) Free Online Tools',
-    description: 'Legal disclaimer for using PDFLove (www.pdflove.store) free online PDF, image, certificate, invoice, and calculator tools.',
-    keywords: 'disclaimer www.pdflove.store',
+    title: 'Legal Disclaimer – Free Online Browser Tools | PDFLove',
+    description:
+      'Read the legal disclaimer for PDFLove free online PDF, image, QR code, certificate, GST invoice, and financial calculator tools processed locally in your browser.',
+    keywords: 'disclaimer pdflove, legal disclaimer pdf tools',
     canonicalUrl: `${SEO_SITE_ORIGIN}/disclaimer`,
-    ogTitle: 'Disclaimer – PDFLove (www.pdflove.store)',
-    ogDescription: 'Legal disclaimer for using www.pdflove.store free online tools.',
+    ogTitle: 'Legal Disclaimer – Free Online Browser Tools | PDFLove',
+    ogDescription: 'Legal disclaimer for using PDFLove free online PDF, image, and calculator tools.',
     ogType: 'website',
     robots: 'index, follow',
     aeoDirectAnswer:
-      'All 160+ tools on PDFLove (www.pdflove.store) are provided 100% free of charge with local client-side browser execution.',
+      'All 160+ tools on PDFLove are provided 100% free of charge with local client-side browser execution.',
     geoKeyFacts: ['100% Free Forever', 'Client-side browser execution'],
     geographySummary: 'India & Global Worldwide',
     geoRegionCodes: 'IN, US, GB, AE',
     geoPlacenames: INDIA_AND_GLOBAL_HUBS.join(', '),
     structuredData: buildStaticPageStructuredData(
       'WebPage',
-      'Disclaimer – PDFLove (www.pdflove.store)',
+      'Legal Disclaimer – Free Online Browser Tools | PDFLove',
       'disclaimer',
-      'Legal disclaimer for using PDFLove (www.pdflove.store) free online PDF, image, certificate, invoice, and calculator tools.'
+      'Read the legal disclaimer for PDFLove free online PDF, image, QR code, certificate, GST invoice, and financial calculator tools processed locally in your browser.'
     ),
   },
 };
@@ -862,13 +803,86 @@ export function resolveSeoConfigForPath(path: string): PageSeoMeta {
   return STATIC_ROUTE_SEO_MAP[cleanPath] || STATIC_ROUTE_SEO_MAP['/'];
 }
 
+/**
+ * Dynamically applies a tool's `keywords` and `canonical` fields directly to `<head>`
+ * (`<meta name="keywords">`, `<link rel="canonical">`, `og:url`, `twitter:url`, and `citation_public_url`).
+ */
+export function applyToolMetaTagsToHead(
+  tool: ToolDefinition,
+  canonicalOverride?: string
+): { keywordsContent: string; canonicalHref: string } {
+  const canonicalHref = canonicalOverride || tool.canonical || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  const baseKeywords = Array.isArray(tool.keywords) && tool.keywords.length > 0 ? tool.keywords : tool.seoKeywords;
+  const keywordsContent = Array.from(
+    new Set([...baseKeywords, ...buildToolGeographyKeywords(tool), ...UNIVERSAL_PDF_KEYWORDS])
+  ).join(', ');
+
+  try {
+    // 1. Dynamically set or create <meta name="keywords">
+    let keywordsMeta = document.querySelector('meta[name="keywords"]') as HTMLMetaElement | null;
+    if (!keywordsMeta) {
+      keywordsMeta = document.createElement('meta');
+      keywordsMeta.setAttribute('name', 'keywords');
+      document.head.appendChild(keywordsMeta);
+    }
+    keywordsMeta.setAttribute('content', keywordsContent);
+    keywordsMeta.setAttribute('data-tool-slug', tool.slug);
+
+    // 2. Dynamically set or create <link rel="canonical" id="canonical-link">
+    let canonicalLink = (document.getElementById('canonical-link') ||
+      document.querySelector('link[rel="canonical"]')) as HTMLLinkElement | null;
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.id = 'canonical-link';
+      canonicalLink.rel = 'canonical';
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute('href', canonicalHref);
+    canonicalLink.setAttribute('data-tool-slug', tool.slug);
+
+    // 3. Keep og:url, twitter:url, and citation_public_url synced with tool.canonical
+    const ogUrlEl = document.getElementById('og-url') || document.querySelector('meta[property="og:url"]');
+    if (ogUrlEl) ogUrlEl.setAttribute('content', canonicalHref);
+
+    let twitterUrlEl = document.querySelector('meta[name="twitter:url"]');
+    if (!twitterUrlEl) {
+      twitterUrlEl = document.createElement('meta');
+      twitterUrlEl.setAttribute('name', 'twitter:url');
+      document.head.appendChild(twitterUrlEl);
+    }
+    twitterUrlEl.setAttribute('content', canonicalHref);
+
+    const citationUrlEl = document.querySelector('meta[name="citation_public_url"]');
+    if (citationUrlEl) citationUrlEl.setAttribute('content', canonicalHref);
+  } catch {
+    // Ignore DOM manipulation errors in non-browser contexts
+  }
+
+  return { keywordsContent, canonicalHref };
+}
+
 export function applySeoConfigToHead(path: string, lang: LanguageCode): void {
   try {
     const langInfo = SUPPORTED_LANGUAGES.find((l) => l.code === lang) || SUPPORTED_LANGUAGES[0];
     document.documentElement.lang = langInfo.code;
     document.documentElement.dir = langInfo.dir;
 
+    const activeToolObj = path.startsWith('/tools/')
+      ? TOOLS_CATALOG.find((t) => t.slug === path.replace('/tools/', '').replace(/\/+$/, ''))
+      : undefined;
+
     const meta = resolveSeoConfigForPath(path);
+    const resolvedCanonical = activeToolObj?.canonical || meta.canonicalUrl;
+    const resolvedKeywords = activeToolObj
+      ? Array.from(
+          new Set([
+            ...(activeToolObj.keywords || activeToolObj.seoKeywords),
+            ...buildToolGeographyKeywords(activeToolObj),
+            ...UNIVERSAL_PDF_KEYWORDS,
+          ])
+        ).join(', ')
+      : meta.keywords;
+
     document.title = meta.title;
 
     const setOrCreateMeta = (nameOrProp: string, value: string, isProperty = false) => {
@@ -887,9 +901,9 @@ export function applySeoConfigToHead(path: string, lang: LanguageCode): void {
       if (el) el.setAttribute(attr, value);
     };
 
-    // 1. Core SEO Meta Tags (Unique per page)
+    // 1. Core SEO Meta Tags (Unique per page, dynamically applying tool.keywords when on a tool page)
     setOrCreateMeta('description', meta.description);
-    setOrCreateMeta('keywords', meta.keywords);
+    setOrCreateMeta('keywords', resolvedKeywords);
     setOrCreateMeta('robots', meta.robots);
     setOrCreateMeta('googlebot', meta.robots);
     setOrCreateMeta('bingbot', meta.robots);
@@ -899,7 +913,7 @@ export function applySeoConfigToHead(path: string, lang: LanguageCode): void {
     setOrCreateMeta('aeo:answer', meta.aeoDirectAnswer);
     setOrCreateMeta('aeo:page-title', meta.title);
     setOrCreateMeta('citation_title', meta.title);
-    setOrCreateMeta('citation_public_url', meta.canonicalUrl);
+    setOrCreateMeta('citation_public_url', resolvedCanonical);
 
     // 3. GEO & Geography Optimization Meta Tags (Unique per page — India & Global)
     setOrCreateMeta('geo:facts', meta.geoKeyFacts.join(' | '));
@@ -912,9 +926,6 @@ export function applySeoConfigToHead(path: string, lang: LanguageCode): void {
     setOrCreateMeta('coverage', 'Worldwide, India');
 
     // 4. BeyondSEO v2.9.1 (beyondtahir/beyondseo) 9-Pillar Meta Tags (Entity, Conversation, Authority, REO)
-    const activeToolObj = path.startsWith('/tools/')
-      ? TOOLS_CATALOG.find((t) => t.slug === path.replace('/tools/', '').replace(/\/+$/, ''))
-      : undefined;
     const beyondProfile = buildBeyondSeoProfileForTool(activeToolObj, path);
     setOrCreateMeta('beyondseo:version', BEYOND_SEO_VERSION);
     setOrCreateMeta('beyondseo:pillars', beyondProfile.pillarsActive.join(', '));
@@ -923,31 +934,42 @@ export function applySeoConfigToHead(path: string, lang: LanguageCode): void {
     setOrCreateMeta('beyondseo:entity', `${beyondProfile.entityDeclaration.who} | ${beyondProfile.entityDeclaration.where}`);
     setOrCreateMeta('beyondseo:score', `${beyondProfile.readinessBreakdown.totalScore}/100`);
 
-    // 5. Canonical & Social OpenGraph / Twitter Cards (Unique per page)
-    setTagAttr('#canonical-link', 'href', meta.canonicalUrl);
+    // 5. Canonical & Social OpenGraph / Twitter Cards (Dynamically applying tool.canonical when on a tool page)
+    let canonicalLink = (document.getElementById('canonical-link') ||
+      document.querySelector('link[rel="canonical"]')) as HTMLLinkElement | null;
+    if (!canonicalLink) {
+      canonicalLink = document.createElement('link');
+      canonicalLink.id = 'canonical-link';
+      canonicalLink.rel = 'canonical';
+      document.head.appendChild(canonicalLink);
+    }
+    canonicalLink.setAttribute('href', resolvedCanonical);
+
     setTagAttr('#og-title', 'content', meta.ogTitle);
     setTagAttr('#og-description', 'content', meta.ogDescription);
-    setTagAttr('#og-url', 'content', meta.canonicalUrl);
+    setTagAttr('#og-url', 'content', resolvedCanonical);
     setTagAttr('#twitter-title', 'content', meta.ogTitle);
     setTagAttr('#twitter-description', 'content', meta.ogDescription);
+    setOrCreateMeta('og:url', resolvedCanonical, true);
+    setOrCreateMeta('twitter:url', resolvedCanonical, false);
     setOrCreateMeta('og:image', `${SEO_SITE_ORIGIN}/og-cover.svg`, true);
     setOrCreateMeta('og:image:alt', meta.ogTitle, true);
     setOrCreateMeta('twitter:image', `${SEO_SITE_ORIGIN}/og-cover.svg`, false);
 
-    // 6. Dynamic Per-Page Hreflang Regional Geography Links (en-IN, hi-IN, gu-IN, en-US, etc.)
+    // 6. Dynamic Per-Page Hreflang Links for Genuinely Supported Languages
     document.querySelectorAll('link[data-dynamic-hreflang="true"]').forEach((el) => el.remove());
-    GEOGRAPHY_TARGET_COUNTRIES.forEach((region) => {
+    SUPPORTED_LANGUAGES.forEach((language) => {
       const link = document.createElement('link');
       link.rel = 'alternate';
-      link.hreflang = region.hreflang;
-      link.href = meta.canonicalUrl;
+      link.hreflang = language.code;
+      link.href = language.code === 'en' ? resolvedCanonical : `${resolvedCanonical}?lang=${language.code}`;
       link.setAttribute('data-dynamic-hreflang', 'true');
       document.head.appendChild(link);
     });
     const xDefault = document.createElement('link');
     xDefault.rel = 'alternate';
     xDefault.hreflang = 'x-default';
-    xDefault.href = meta.canonicalUrl;
+    xDefault.href = resolvedCanonical;
     xDefault.setAttribute('data-dynamic-hreflang', 'true');
     document.head.appendChild(xDefault);
 
@@ -975,9 +997,10 @@ export function applySeoConfigToHead(path: string, lang: LanguageCode): void {
       dynamicJsonLdScript.textContent = JSON.stringify(meta.structuredData);
     }
 
-    // 9. Standardized Per-Tool Schema Head Injection (SoftwareApplication, BreadcrumbList, FAQPage)
+    // 9. Standardized Per-Tool Meta & Schema Head Injection (keywords, canonical, SoftwareApplication, BreadcrumbList, FAQPage)
     if (activeToolObj) {
-      injectStandardToolJsonLdToHead(activeToolObj);
+      applyToolMetaTagsToHead(activeToolObj, resolvedCanonical);
+      injectStandardToolJsonLdToHead(activeToolObj, { canonicalUrl: resolvedCanonical });
     } else {
       clearStandardToolJsonLdFromHead();
     }
@@ -1020,7 +1043,8 @@ export function injectStandardToolJsonLdToHead(
   breadcrumbSchema: Record<string, unknown>;
   faqPageSchema: Record<string, unknown>;
 } {
-  const canonicalUrl = options?.canonicalUrl || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  const canonicalUrl = options?.canonicalUrl || tool.canonical || `${SEO_SITE_ORIGIN}/tools/${tool.slug}`;
+  applyToolMetaTagsToHead(tool, canonicalUrl);
   const softwareSchema = buildStandardToolSoftwareApplicationSchema(tool, {
     ...options,
     canonicalUrl,

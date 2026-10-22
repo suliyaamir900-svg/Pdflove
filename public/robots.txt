@@ -42,7 +42,5 @@ Allow: /
 User-agent: Bingbot
 Allow: /
 
-Host: https://www.pdflove.store
 Sitemap: https://www.pdflove.store/sitemap.xml
 Sitemap: https://www.pdflove.store/sitemap-index.xml
-
